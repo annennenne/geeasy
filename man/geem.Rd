@@ -1,0 +1,137 @@
+\name{geem}
+\alias{geem}
+\alias{geeM-package}
+\alias{geeM}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{
+Fit Generalized Estimating Equations
+}
+\description{
+Calculate coefficients and nuisance parameters using generalized estimating equations.  Link and Variance functions can be specified by the user.  Similar to \code{\link{glm}}.
+}
+\usage{
+geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independence",
+ Mv = 1, corr.mat = NULL, init.beta = NULL,
+ init.alpha = NULL, init.phi = NULL, scale.fix = FALSE, sandwich = TRUE,
+ maxit = 20, tol = 1e-05)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{formula}{
+a formula expression similar to that for \code{\link{glm}}, of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
+}
+  \item{id}{
+a vector identifying the clusters.  Data are assumed to be sorted such that observations in a cluster are contiguous rows and increasing with time.
+}
+  \item{data}{
+an optional data frame containing the variables in the model.
+}
+  \item{family}{
+will determine the link and variance functions.  The argument can be one of three options: a \code{family} object, a character string, or a list of functions.
+
+For more information on how to use \code{family} objects, see \code{\link{family}}.
+  
+If the supplied argument is a character string, then the string should correspond to one of the family objects.
+
+In order to define a link function, a list must be created with the components \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, all of which are vectorized functions.  If the components in the list are not named as
+
+\code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, then \code{geem} assumes that the functions are given in that order.  LinkFun and VarFun are the link and variance functions. InvLink and InvLinkDeriv are the inverse of the link function and the derivative of the inverse of the link function and so are decided by the choice of the link function.
+}
+  \item{corstr}{
+a character string specifying the correlation structure.  Allowed structures are: \code{"independence"}, \code{"exchangeable"}, \code{"ar1"}, \code{"m-dependent"}, \code{"unstructured"}, \code{"fixed"}, and \code{"userdefined"}.  Any unique substring may be supplied.  If \code{"fixed"} or \code{"userdefined"}, then \code{corr.mat} must be specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.
+}
+  \item{Mv}{
+for \code{"m-dependent"}, the value for \code{m}.
+}
+  \item{corr.mat}{
+the correlation matrix for \code{"fixed"}.  Matrix should be symmetric with dimensions >= the maximum cluster size.  If the correlation structure is \code{"userdefined"}, then this is a matrix describing which correlations are the same.
+}
+  \item{init.beta}{
+an optional vector with the initial values of beta.  If not specified, then the intercept will be set to \code{InvLink(mean(response))}.  \code{init.beta} must be specified if not using an intercept.
+}
+  \item{init.alpha}{
+an optional scalar or vector giving the initial values for the correlation.  If provided along with \code{Mv>1} or \code{unstructured} correlation, then the user must ensure that the vector is of the appropriate length.
+}
+  \item{init.phi}{
+an optional initial overdispersion parameter.  If not supplied, initialized to 1.
+}
+  \item{scale.fix}{
+if set to \code{TRUE}, then the scale parameter is fixed at the value of \code{init.phi}.
+}
+  \item{sandwich}{
+if \code{TRUE}, calculate robust variance.
+}
+  \item{maxit}{
+maximum number of iterations.
+}
+  \item{tol}{
+tolerance in calculation of coefficients.
+}
+}
+\details{
+User may specify functions for link and variance functions, but they must be vectorized functions.  See \code{\link{Vectorize}} for an easy way to vectorize functions.  \code{Vectorize} should be used sparingly, however, as it can lead to fairly slow function calls.  Care must be taken to ensure that convergence is possible with non-standard functions.
+
+Offsets must be specified in the model formula, as in glm.
+
+For the \code{"userdefined"} correlation option, the function accepts a matrix with consecutive integers.  \code{geem} only looks at the upper triangle of the matrix.  Any entry given as 0 will be fixed at 0.  All entries given as 1 will be assumed to be the same as each other and will be assumed to be possibly different from entries with a 2, and so on.
+}
+\value{
+An object of class "geem" representing the fit.
+}
+%\references{
+%% ~put references to the literature/web site here ~
+%}
+\author{
+Lee McDaniel
+}
+%\note{
+%%  ~~further notes~~
+%}
+
+%% ~Make other sections like Warning with \section{Warning }{....} ~
+
+\seealso{
+\code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
+}
+\examples{
+### Generated Poisson Data
+X <- cbind(rep(1,5),c(-.5,-.25,0,.25,.5))
+testdat <- generatedata(beta=c(1,.5),alpha=.2,gamma=.5,X=X,T=5,n=3000)
+far1 <- geem(count~ time, id=subject ,data = testdat, family=poisson, 
+	corstr="ar1")
+
+### Ohio respiratory data from geepack
+if(require(geepack)){
+	data(ohio)
+	resplogit <- geem(resp ~ age + smoke + age:smoke, id=id, data = ohio, family = binomial,
+	corstr = "m-dep" , Mv=1)
+  
+  LinkFun <- function(arg){qcauchy(arg)}
+  InvLink <- function(arg){pcauchy(arg)}
+  InvLinkDeriv <- function(arg){dcauchy(arg)}
+  VarFun <- function(arg){arg*(1-arg)}
+  FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)
+  
+  respcauchit <- geem(resp ~ age + smoke + age:smoke, id=id, data = ohio, family = FunList,
+  corstr = "m-dep" , Mv=1)
+}
+
+### Seizure data from geepack
+if(require(geepack)){
+	data(seizure)
+	seiz.l <- reshape(seizure,
+	varying=list(c("base","y1", "y2", "y3", "y4")),
+		v.names="y", times=0:4, direction="long")
+		seiz.l <- seiz.l[order(seiz.l$id, seiz.l$time),]
+		seiz.l$t <- ifelse(seiz.l$time == 0, 8, 2)
+		seiz.l$x <- ifelse(seiz.l$time == 0, 0, 1)
+
+	seiz <- geem(y~ x + trt + x:trt+ offset(log(t)), id=id,data = seiz.l, 
+	family = poisson, corstr = "exchangeable")
+}
+
+}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{ models }
+\keyword{ robust }% __ONLY ONE__ keyword per line

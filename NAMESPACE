@@ -1,0 +1,7 @@
+export(geem)
+export(generatedata)
+import(Matrix)
+S3method(summary,geem)
+S3method(print,geem)
+S3method(fitted,geem)
+S3method(print,summary.geem)
