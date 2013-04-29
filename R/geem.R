@@ -1,6 +1,4 @@
-require(Matrix)
-
-geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = "independence", Mv = 1, corr.mat = NULL, init.beta=NULL, init.alpha=NULL, init.phi = NULL, scale.fix=FALSE, sandwich=TRUE, maxit=20, tol=0.00001){
+geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = "independence", Mv = 1, weights = NULL, corr.mat = NULL, init.beta=NULL, init.alpha=NULL, init.phi = NULL, scale.fix=FALSE, sandwich=TRUE, maxit=20, tol=0.00001){
   call <- match.call()
     
   if(is.character(family)){
@@ -13,19 +11,26 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
     InvLink <- family$linkinv
     VarFun <- family$variance
     InvLinkDeriv <- family$mu.eta
-    FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)    
+    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv)    
   }else if(is.list(family) && !is.null(family$family)){
     LinkFun <- family$linkfun
     InvLink <- family$linkinv
     VarFun <- family$variance
     InvLinkDeriv <- family$mu.eta
-    FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)
+    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv)    
   }else if(is.list(family)){
-    LinkFun <- family$LinkFun
-    InvLink <- family$InvLink
-    VarFun <- family$VarFun
-    InvLinkDeriv <- family$InvLinkDeriv
-    FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)
+  	if(length(match(names(family), c("LinkFun", "VarFun", "InvLink", "InvLinkDeriv"))) == 4){
+    	LinkFun <- family$LinkFun
+    	InvLink <- family$InvLink
+    	VarFun <- family$VarFun
+    	InvLinkDeriv <- family$InvLinkDeriv
+  	}else{
+	  	LinkFun <- family[[1]]
+	  	VarFun <- family[[2]]
+    	InvLink <- family[[3]]
+    	InvLinkDeriv <- family[[4]]
+    }
+    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv)    
   }else{
     stop("problem with family argument: should be string, family object, or list of functions")
   }
@@ -33,22 +38,69 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
   if(scale.fix & is.null(init.phi)){
     stop("If scale.fix=TRUE, then init.phi must be supplied")
   }
-
+  
     ### First, get all the relevant elements from the arguments
-	modterms <- terms(formula)
-	modframe <- model.frame(formula, data)
-	
 
-		
+  subj.col <- which(colnames(data) == call$id)  
+  id <- data[,subj.col]
+  nn <- dim(data)[1]
+  
+  # W is diagonal matrix of weights, sqrtW = sqrt(W)
+  # included is diagonal matrix with 1 if weight > 0, 0 otherwise
+  # includedvec is logical vector with T if weight > 0, F otherwise
+  na.inds <- NULL
+
+  if(any(is.na(data))){
+    na.inds <- which(is.na(data), arr.ind=T)
+  }
+  
+  if(is.null(weights)){
+    weights <- rep.int(1, nn)
+  }
+  if(!is.null(na.inds)){
+    weights[unique(na.inds[,1])] <- 0
+    for(i in unique(na.inds)[,2]){
+      data[na.inds[,1], i] <- median(data[,i], na.rm=T)
+    }
+  }
+
+  includedvec <- weights>0
+
+  
+  inclsplit <- split(includedvec, id)
+
+  dropid <- NULL
+  allobs <- T
+  if(any(!includedvec)){
+    allobs <- F
+    for(i in 1:length(unique(id))){
+      if(all(!inclsplit[[i]])){
+        dropid <- c(dropid, i)
+      }    
+    }
+  }
+
+  
+  if(length(dropid)>0){
+    dropind <- which(is.element(id, dropid))
+    data <- data[-dropind,]
+    includedvec <- includedvec[-dropind]
+    weights <- weights[-dropind]
+    
+    id <- data[,subj.col]
+  }
+  nn <- dim(data)[1]
+  K <- length(unique(id))
+
+  modterms <- terms(formula)
+  modframe <- model.frame(formula, data)
+  
 	X <- model.matrix(formula,modframe)
 	Y <- model.response(modframe)
 	offset <- model.offset(modframe)			
 	
 	p <- dim(X)[2]
-	nn <- length(Y)
 
-    subj.col <- which(colnames(data) == call$id)	
-	id <- data[,subj.col]
 	
 	### if no offset is given, then set to zero
 	if(is.null(offset)){
@@ -56,7 +108,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	}else{
 		off <- offset
 	}
-
+  
 	# Is there an intercept column?
 	interceptcol <- apply(X==1, 2, all)
 	
@@ -78,10 +130,27 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 			stop("Must supply an initial beta if not using an intercept.")
 		}
 	}
+  
+
+  # Number of included observations for each cluster
+  includedlen <- rep(0, K)
+  len <- rep(0,K)
+  uniqueid <- unique(id)
+
+  tmpwgt <- as.numeric(includedvec)
+  tmpwgt[tmpwgt==0] <- NA
+  includedlen <- as.numeric(summary(split(Y, id*tmpwgt, drop=T))[,1])
+  len <- as.numeric(summary(split(Y, id, drop=T))[,1])
+
+  W <- Diagonal(x=weights)
+  sqrtW <- sqrt(W)
+  included <- Diagonal(x=(as.numeric(weights>0)))
+
+  # Get vector of cluster sizes... remember this len variable
+  #len <- as.numeric(summary(split(Y, id, drop=T))[,1])
 	
-	# Get vector of cluster sizes... remember this len variable
-	len <- as.numeric(summary(split(Y, id, drop=T))[,1])
-	
+
+  
 	# Figure out the correlation structure
 	cor.vec <- c("independence", "ar1", "exchangeable", "m-dependent", "unstructured", "fixed", "userdefined")
 	cor.match <- charmatch(corstr, cor.vec)
@@ -113,8 +182,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	
 	beta <- init.beta
 	
-		## Get the vector of number of observations per subject
-	K <- length(len)
+
 	
 	#Set up matrix storage
 	StdErr <- Diagonal(nn)
@@ -206,14 +274,15 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	}else{
 		stop("Unsupported Correlation Structure")	
 	}
-		
-	stop <- F
+
+  stop <- F
 	converged <- F	
 	count <- 0
 	beta.old <- beta
 	unstable <- F
 	phi.old <- phi
 	
+
 	# Main fisher scoring loop
 	while(!stop){		
 		count <- count+1
@@ -223,28 +292,28 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 		mu <- InvLink(eta)
 		
 		diag(StdErr) <- sqrt(1/VarFun(mu))
-
-    if(!scale.fix){
-		  phi <- updatePhi(Y, mu, VarFun, p, StdErr)
-    }
-    phi.new <- phi
-
+		
+    	if(!scale.fix){
+			  phi <- updatePhi(Y, mu, VarFun, p, StdErr, included, includedlen)
+    	}
+    	phi.new <- phi
+		
                 
         ## Calculate alpha, R(alpha)^(-1) / phi
 		if(cor.match == 2){
 			# AR-1
-			alpha.new <- updateAlphaAR(Y, mu, VarFun, phi, id, len, StdErr, p)
+			alpha.new <- updateAlphaAR(Y, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs)
 			R.alpha.inv <- updateAlphaInvAR(alpha.new, a1,a2,a3,a4, row.vec, col.vec)/phi
 		}else if(cor.match == 3){
-			#EXCHANGEABLE
-			alpha.new <- updateAlphaEX(Y, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag)
+			#EXCHANGEABLE		  
+			alpha.new <- updateAlphaEX(Y, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen)
 			R.alpha.inv <- getAlphaInvEX(alpha.new, n.vec, BlockDiag)/phi
 		}else if(cor.match == 4){
 			# M-DEPENDENT
 			if(Mv==1){
-				alpha.new <- updateAlphaAR(Y, mu, VarFun, phi, id, len, StdErr, p)
+				alpha.new <- updateAlphaAR(Y, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs)
 			}else{
-				alpha.new <- updateAlphaMDEP(Y, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, Mv)
+				alpha.new <- updateAlphaMDEP(Y, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, Mv, included, includedlen, allobs)
 				if(sum(len>Mv) <= p){
 					unstable <- T
 				}
@@ -256,7 +325,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 			R.alpha.inv <- getAlphaInvMDEP(alpha.new, len, row.vec, col.vec)/phi		
 		}else if(cor.match == 5){
 			# UNSTRUCTURED
-			alpha.new <- updateAlphaUnstruc(Y, mu, VarFun, phi, id, len, StdErr, Resid,  p, BlockDiag)
+			alpha.new <- updateAlphaUnstruc(Y, mu, VarFun, phi, id, len, StdErr, Resid,  p, BlockDiag, included, includedlen, allobs)
 			# This has happened to me (greater than 1 correlation estimate)
 			if(any(alpha.new >= 1)){
 				stop <- T
@@ -268,7 +337,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 			R.alpha.inv <- R.alpha.inv*phi.old/phi
 		}else if(cor.match == 7){
 			# USER SPECIFIED
-			alpha.new <- updateAlphaUser(Y, mu, phi, id, len, StdErr, Resid, p, BlockDiag, user.row, user.col, corr.list)
+			alpha.new <- updateAlphaUser(Y, mu, phi, id, len, StdErr, Resid, p, BlockDiag, user.row, user.col, corr.list, included, includedlen, allobs)
 			R.alpha.inv <- getAlphaInvUser(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec)/phi
 		}else if(cor.match == 1){
 			# INDEPENDENT
@@ -276,17 +345,21 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 			alpha.new <- "independent"
 		}
 		
-		beta.list <- updateBeta(Y, X, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol)	
+		
+		beta.list <- updateBeta(Y, X, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol, sqrtW)	
 		beta <- beta.list$beta
 		phi.old <- phi
 		if( max(abs((beta - beta.old)/(beta.old + .Machine$double.eps))) < tol ){converged <- T; stop <- T}
 		if(count >= maxit){stop <- T}		
 		beta.old <- beta		
 	}
-		
+	biggest <- which.max(len)[1]
+	index <- cumsum(len[biggest])
+	biggest.R.alpha.inv <- R.alpha.inv[(index+1):(index+len[biggest]) , (index+1):(index+len[biggest])]
+	R.a <- solve(biggest.R.alpha.inv)/phi	
 	eta <- as.vector(X %*% beta) + off
 	if(sandwich){
-		sandvar.list <- getSandwich(Y, X, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, beta.list$hess, StdErr, dInvLinkdEta, BlockDiag)
+		sandvar.list <- getSandwich(Y, X, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, beta.list$hess, StdErr, dInvLinkdEta, BlockDiag, sqrtW)
 	}else{
 		sandvar.list <- list()
 		sandvar.list$sandvar <- "no sandwich"
@@ -294,6 +367,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	
 	if(!converged){warning("Did not converge")}
 	if(unstable){warning("Number of subjects with number of observations >= Mv is very small, some correlations are estimated with very low sample size.")}
+
 	
 	# Create object of class geem with information about the fit
 	results <- list()
@@ -315,6 +389,8 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	results$X <- X
 	results$offset <- off
 	results$eta <- eta
+	results$R.a <- R.a
+  results$dropped <- dropid
 	class(results) <- "geem"
 	return(results)
 }
@@ -365,73 +441,97 @@ getAlphaInvEX <- function(alpha.new, diag.vec, BlockDiag){
 }
 
 ### Calculate the parameter for the EXCHANGEABLE correlation structure
-updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag){
-	
-	resid <- StdErr %*% (YY - mu)
-	diag(Resid) <- resid
-
+updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen){
+  
+	Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  
 	BlockDiag <- Resid %*% BlockDiag %*% Resid
-
-	alpha <- sum(BlockDiag) - phi*(sum(len) - p)
-	alpha.new <- alpha/(phi*as.numeric(crossprod(len, len-1) - p) )
+  denom <-  phi*(crossprod(includedlen, pmax(includedlen-1, 0))/2 - p)
+	alpha <- (sum(BlockDiag) - phi*(sum(includedlen)-p))/2
+	alpha.new <- alpha/denom
 	return(alpha.new)
 }
 
 ### Calculate the parameters for the M-DEPENDENT correlation structure
-updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, m){
+updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, m, included, includedlen, allobs){
 	
-	resid <- StdErr %*% (YY - mu)
-	diag(Resid) <- resid
-
+  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  
 	BlockDiag <- Resid %*% BlockDiag %*% Resid
 	alpha.new <- vector("numeric", m)
 	for(i in 1:m){	
-		if(sum(len>i) > p){
-			alpha.new[i] <- sum(band(BlockDiag, i,i))/(phi*(sum(as.numeric(len>i)*(len-i))-p))
+		if(sum(includedlen>i) > p){
+			bandmat <- drop0(band(BlockDiag, i,i))
+      
+      if(allobs){alpha.new[i] <- sum(bandmat)/(phi*(sum(as.numeric(len>i)*(len-i))-p))
+      }else{alpha.new[i] <- sum( bandmat)/(phi*(length(bandmat@i)-p))}
+      
 		}else{
 			# If we don't have many observations for a certain parameter, don't divide by p
 			# ensures we don't have NaN errors.
-			alpha.new[i] <- sum(band(BlockDiag, i,i))/(phi*(sum(as.numeric(len>i)*(len-i))))			
+		  bandmat <- drop0(band(BlockDiag, i,i))
+      
+      if(allobs){alpha.new[i] <- sum(bandmat)/(phi*(sum(as.numeric(len>i)*(len-i))))
+      }else{alpha.new[i] <- sum( bandmat)/(phi*length(bandmat@i))}
+      
 		}
 	}
 	return(alpha.new)
 }
 
 ### Calculate the parameter for the AR-1 correlation, also used for 1-DEPENDENT
-updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p){
+updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs){
 	K <- length(len)
-	oneobs <- which(len==1)
+	oneobs <- which(len == 1)
+  
+  resid <- diag(StdErr %*% included %*% Diagonal(x = YY - mu))
 	
-	resid <- StdErr %*% (YY - mu)
-
 	len2 = len
+	includedvec2 <- includedvec
 	if(length(oneobs) > 0){
 		index <- c(0, (cumsum(len) -len)[2:K], sum(len))
-		len2 <- len[-which(len==1)]
-		resid <- resid[-index[which(len==1)]]
+		len2 <- len[-oneobs]
+		resid <- resid[-index[oneobs]]
+    includedvec2 <- includedvec[-index[oneobs]]
 	}
+  
+  
 	nn <- length(resid)
+  lastobs <- cumsum(len2)
 	
 	shiftresid1 <- resid[1:nn-1]
 	shiftresid2 <- resid[2:nn]
-
-	alphasum <- crossprod(shiftresid1[-(cumsum(len2))], shiftresid2[-(cumsum(len2))])
-	
-	alpha <- alphasum/( (sum(len2-1) - p)*phi)
+  if(!allobs){
+    shiftresid1 <- shiftresid1[-lastobs]
+  	shiftresid2 <- shiftresid2[-lastobs]
+  	s1incvec2 <- includedvec2[1:nn-1]
+  	s2incvec2 <- includedvec2[2:nn]
+  	s1incvec2 <- s1incvec2[-lastobs]
+  	s2incvec2 <- s2incvec2[-lastobs]
+  
+  	alphasum <- crossprod(shiftresid1, shiftresid2)
+  
+    denom <- (as.vector(crossprod(s1incvec2, s2incvec2)) - p)*phi
+  }else{
+    alphasum <- crossprod(shiftresid1[-(cumsum(len2))], shiftresid2[-(cumsum(len2))])
+    denom <- (sum(len2-1) - p)*phi
+  }
+  
+	alpha <- alphasum/denom
 	return(as.numeric(alpha))
 }
 
 ### Simple moment estimator of dispersion parameter
-updatePhi <- function(YY, mu, VarFun, p, StdErr){
-	nn <- length(YY)
-	phi <- (1/(nn-p))*crossprod(StdErr%*%(YY-mu), (StdErr%*%(YY-mu))) 
-
+updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen){
+	nn <- sum(includedlen)
+	resid <- diag(StdErr %*% included %*% Diagonal(x = YY - mu))
+	phi <- (1/(nn-p))*crossprod(resid, resid) 
 	return(as.numeric(phi))	
 }
 
 ### Method to update coefficients.  Goes to a maximum of 10 iterations, or when
 ### rough convergence has been obtained.
-updateBeta = function(YY, XX, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol){
+updateBeta = function(YY, XX, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol, sqrtW){
 	beta.new <- beta
 	conv=F
 	for(i in 1:10){
@@ -441,8 +541,8 @@ updateBeta = function(YY, XX, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.
 		mu <- InvLink(eta)	
 		diag(StdErr) <- sqrt(1/VarFun(mu))
 		
-		hess <- crossprod(StdErr %*% dInvLinkdEta %*%XX, R.alpha.inv %*% StdErr %*%dInvLinkdEta %*% XX)
-		esteq <- crossprod(StdErr %*%dInvLinkdEta %*%XX , R.alpha.inv %*% StdErr %*% (YY - mu))
+		hess <- crossprod(sqrtW %*% StdErr %*% dInvLinkdEta %*%XX, R.alpha.inv %*% sqrtW %*% StdErr %*%dInvLinkdEta %*% XX)
+		esteq <- crossprod(sqrtW %*% StdErr %*%dInvLinkdEta %*%XX , R.alpha.inv %*% sqrtW %*% StdErr %*% (YY - mu))
 
 		update <- solve(hess, esteq)
 		if(max(abs(update)/beta.new) < 100*tol){break}
@@ -453,7 +553,7 @@ updateBeta = function(YY, XX, beta, off, InvLinkDeriv, InvLink, VarFun, R.alpha.
 }
 
 ### Calculate the sandiwch estimator as usual.
-getSandwich = function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, hessMat, StdErr, dInvLinkdEta, BlockDiag){
+getSandwich = function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, hessMat, StdErr, dInvLinkdEta, BlockDiag, sqrtW){
 
 	diag(dInvLinkdEta) <- InvLinkDeriv(eta)
 	mu <- InvLink(eta)			
@@ -461,10 +561,11 @@ getSandwich = function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink,
 	scoreDiag <- Diagonal(x= YY - mu)
 	BlockDiag <- scoreDiag %*% BlockDiag %*% scoreDiag
 		
-	numsand <- crossprod( StdErr %*% dInvLinkdEta %*% XX, R.alpha.inv %*% StdErr %*% BlockDiag %*% StdErr %*% R.alpha.inv %*% StdErr %*% dInvLinkdEta %*% XX)
+	numsand <- crossprod(sqrtW %*% StdErr %*% dInvLinkdEta %*% XX, R.alpha.inv %*% sqrtW %*% StdErr %*% BlockDiag %*% StdErr %*% sqrtW %*% R.alpha.inv %*% sqrtW %*% StdErr %*% dInvLinkdEta %*% XX)
 	
 	sandvar <- t(solve(hessMat, numsand))
 	sandvar <- t(solve(t(hessMat), sandvar))
+
 	return(list(sandvar = sandvar, numsand = numsand))
 }
 
@@ -538,10 +639,10 @@ getAlphaInvUnstruc <- function(alpha.new, len, row.vec, col.vec){
 }
 
 ### Calculate alpha values for UNSTRUCTURED correlation
-updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag){
+updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, allobs){
 	
-	diag(Resid) <- StdErr %*% (YY - mu)
-
+  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  
 	ml <- max(len)
 
 	BlockDiag <- Resid %*% BlockDiag %*% Resid
@@ -555,13 +656,17 @@ updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, B
 		col.vec <- c(col.vec, rep(i, each=i-1))
 	}
 	index <- cumsum(len)-len
-	if(sum(len == max(len)) <= p){stop("Number of clusters of largest size is less than p.")}
+	if(sum(includedlen == max(len)) <= p){stop("Number of clusters of largest size is less than p.")}
 	for(i in 1:lalph){
 			# Get all of the indices of the matrix corresponding to the correlation
 			# we want to estimate.
 			newrow <- index[which(len>=col.vec[i])] + row.vec[i]
 			newcol <- index[which(len>=col.vec[i])] + col.vec[i]
-			alpha.new[i] <- sum(BlockDiag[cbind(newrow, newcol)])/(phi*(length(newrow)-p))
+      bdtmp <- BlockDiag[cbind(newrow, newcol)]
+      if(allobs){
+        denom <- (phi*(length(newrow)-p))
+      }else{denom <- (phi*(sum(bdtmp!=0)-p))}
+			alpha.new[i] <- sum(bdtmp)/denom
 	}
 
 	return(alpha.new)
@@ -630,10 +735,9 @@ getUserStructure <- function(corr.mat){
 }
 
 ### Update the alpha (possibly) vector for the USERDEFINED correlation matrix.	
-updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, row.vec, col.vec, corr.list){
-	resid <- StdErr %*% (YY - mu)
-	diag(Resid) <- resid
-
+updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, row.vec, col.vec, corr.list, included, includedlen, allobs){
+  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  
 	ml <- max(len)
 
 	BlockDiag <- Resid %*% BlockDiag %*% Resid
@@ -649,8 +753,12 @@ updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, r
 			newcol <- c(newcol, index[which(len >= col.vec[corr.list[[i]]][j])] + col.vec[corr.list[[i]][j]])
 		}
 
-		alpha.new[i] <- sum(BlockDiag[cbind(newrow, newcol)])/(phi*(length(newrow) - p))
-	}
+		bdtmp <- BlockDiag[cbind(newrow, newcol)]
+    if(allobs){
+      denom <- phi*(length(newrow) - p)
+    }else{denom <- phi*(sum(bdtmp!=0)-p)}
+		alpha.new[i] <- sum(bdtmp)/denom
+  }
 	return(alpha.new)	
 }
 
@@ -783,11 +891,21 @@ print.geem <- function(x, ...){
 	cat("\n Scale Parameter: ", x$phi, "\n")
 	cat("\n Correlation Model: ", x$corr)
 	cat("\n Estimated Correlation Parameters: ", x$alpha, "\n")
-	cat("\n Number of clusters: ", length(x$clusz), "  Maximum cluster size: ", max(x$clusz))
+	cat("\n Number of clusters: ", length(x$clusz), "  Maximum cluster size: ", max(x$clusz), "\n")
 }
 
 ### fitted function for geem object
 fitted.geem <- function(object, ...){
 	InvLink <- object$FunList$InvLink
 	return(InvLink(object$eta))
+}
+
+predict.geem <- function(object, newdata = NULL,...){
+	coefs <- object$beta
+	if(is.null(newdata)){
+		return(as.vector(object$X %*% object$beta))
+	}else{
+		if(dim(newdata)[2] != length(coefs)){warning("New observations must have the same number of rows as coefficients in the model")}
+		return(as.vector(newdata %*% object$beta))
+	}
 }

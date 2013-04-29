@@ -1,8 +1,8 @@
 Package: geeM
 Type: Package
 Title: Fit Generalized Estimating Equations
-Version: 0.05
-Date: 2012-10-8
+Version: 0.06
+Date: 2013-04-29
 Author: Lee McDaniel and Nick Henderson
 Maintainer: Lee McDaniel <mcdaniel@stat.wisc.edu>
 Depends: Matrix
@@ -11,6 +11,7 @@ Description: Allows generalized estimating equation fits with
         user-specified link and variance functions.
 License: GPL (>= 2)
 ByteCompile: TRUE
-Packaged: 2012-10-17 16:48:45 UTC; mcdaniel
+Packaged: 2013-04-29 20:26:52 UTC; admin
+NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2012-10-18 06:09:15
+Date/Publication: 2013-04-30 06:28:10

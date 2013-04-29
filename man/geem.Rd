@@ -11,8 +11,8 @@ Calculate coefficients and nuisance parameters using generalized estimating equa
 }
 \usage{
 geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independence",
- Mv = 1, corr.mat = NULL, init.beta = NULL,
- init.alpha = NULL, init.phi = NULL, scale.fix = FALSE, sandwich = TRUE,
+ Mv = 1, weights = NULL, corr.mat = NULL, init.beta = NULL,
+ init.alpha = NULL, init.phi = NULL, scale.fix = FALSE, sandwich = TRUE, 
  maxit = 20, tol = 1e-05)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -21,7 +21,7 @@ geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independen
 a formula expression similar to that for \code{\link{glm}}, of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
 }
   \item{id}{
-a vector identifying the clusters.  Data are assumed to be sorted such that observations in a cluster are contiguous rows and increasing with time.
+a vector identifying the clusters.  For instance, this could be subject id.  Data are assumed to be sorted such that observations in a cluster are in consecutive rows.  Further, higher numbered rows in a cluster are assumed to be later, and this determines the correlation structure.
 }
   \item{data}{
 an optional data frame containing the variables in the model.
@@ -42,6 +42,9 @@ a character string specifying the correlation structure.  Allowed structures are
 }
   \item{Mv}{
 for \code{"m-dependent"}, the value for \code{m}.
+}
+\item{weights}{
+  A vector of weights for each observation.  If an observation has weight 0, it is excluded from the calculations of any parameters.  Observations with a \code{NA} anywhere (even in variables not included in the model) will be assigned a weight of 0.
 }
   \item{corr.mat}{
 the correlation matrix for \code{"fixed"}.  Matrix should be symmetric with dimensions >= the maximum cluster size.  If the correlation structure is \code{"userdefined"}, then this is a matrix describing which correlations are the same.
@@ -69,11 +72,13 @@ tolerance in calculation of coefficients.
 }
 }
 \details{
-User may specify functions for link and variance functions, but they must be vectorized functions.  See \code{\link{Vectorize}} for an easy way to vectorize functions.  \code{Vectorize} should be used sparingly, however, as it can lead to fairly slow function calls.  Care must be taken to ensure that convergence is possible with non-standard functions.
+Users may specify functions for link and variance functions, but the functions must be vectorized functions.  See \code{\link{Vectorize}} for an easy way to vectorize functions.  \code{Vectorize} should be used sparingly, however, as it can lead to fairly slow function calls.  Care must be taken to ensure that convergence is possible with non-standard functions.
 
 Offsets must be specified in the model formula, as in glm.
 
 For the \code{"userdefined"} correlation option, the function accepts a matrix with consecutive integers.  \code{geem} only looks at the upper triangle of the matrix.  Any entry given as 0 will be fixed at 0.  All entries given as 1 will be assumed to be the same as each other and will be assumed to be possibly different from entries with a 2, and so on.
+
+If observations are dropped because they have a weight of 0, then the denominator for the moment estimates of the correlation matrices are calculated using the number of non-zero Pearson residuals for the correlation structures \code{unstructured}, \code{userdefined} and \code{m-dependent} with \code{Mv>1}.  Therefore residuals numerically equal to 0 may cause problems in the calculation of correlation parameters.
 }
 \value{
 An object of class "geem" representing the fit.
@@ -82,7 +87,7 @@ An object of class "geem" representing the fit.
 %% ~put references to the literature/web site here ~
 %}
 \author{
-Lee McDaniel
+Lee McDaniel and Nick Henderson
 }
 %\note{
 %%  ~~further notes~~
@@ -94,7 +99,28 @@ Lee McDaniel
 \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
 }
 \examples{
-### Generated Poisson Data
+### Generated Negative Binomial Data
+generatedata <- function(beta,alpha,gamma,X,T,n)  {
+     mean.vec <- exp(crossprod(t(X),beta))
+     y <- matrix(0,nrow=n,ncol=T)
+     y[,1] <- rnbinom(n,mu = mean.vec[1],size=mean.vec[1]/gamma)
+     for (i in 1:n)  {
+        for (t in 2:T)  {
+           innovation.mean <- mean.vec[t] - alpha*(sqrt(mean.vec[t]*mean.vec[t-1]))
+           I <- rnbinom(1,mu= innovation.mean,size= innovation.mean/gamma)           
+           first.shape <- alpha*sqrt(mean.vec[t]*mean.vec[t-1])/gamma
+           second.shape <- mean.vec[t-1]/gamma - first.shape
+           u <- rbeta(1,shape1 = first.shape,shape2=second.shape)
+           a <- rbinom(1,size=y[i,t-1],prob=u)
+           y[i,t] = a + I
+        }
+     }
+     longform <- c(t(y))
+     print(apply(y,2,mean))
+     simdata <- data.frame(count = longform, time = rep(X[,2],times=n),subject=rep(c(1:n),each=T))
+     return(simdata)
+}
+
 X <- cbind(rep(1,5),c(-.5,-.25,0,.25,.5))
 testdat <- generatedata(beta=c(1,.5),alpha=.2,gamma=.5,X=X,T=5,n=3000)
 far1 <- geem(count~ time, id=subject ,data = testdat, family=poisson, 
@@ -102,7 +128,7 @@ far1 <- geem(count~ time, id=subject ,data = testdat, family=poisson,
 
 ### Ohio respiratory data from geepack
 if(require(geepack)){
-	data(ohio)
+	data("ohio", package="geepack")
 	resplogit <- geem(resp ~ age + smoke + age:smoke, id=id, data = ohio, family = binomial,
 	corstr = "m-dep" , Mv=1)
   
@@ -118,7 +144,7 @@ if(require(geepack)){
 
 ### Seizure data from geepack
 if(require(geepack)){
-	data(seizure)
+	data("seizure", package="geepack")
 	seiz.l <- reshape(seizure,
 	varying=list(c("base","y1", "y2", "y3", "y4")),
 		v.names="y", times=0:4, direction="long")
