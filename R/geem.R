@@ -356,7 +356,6 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	biggest <- which.max(len)[1]
 	index <- cumsum(len[biggest])
 	biggest.R.alpha.inv <- R.alpha.inv[(index+1):(index+len[biggest]) , (index+1):(index+len[biggest])]
-	R.a <- solve(biggest.R.alpha.inv)/phi	
 	eta <- as.vector(X %*% beta) + off
 	if(sandwich){
 		sandvar.list <- getSandwich(Y, X, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, beta.list$hess, StdErr, dInvLinkdEta, BlockDiag, sqrtW)
@@ -389,7 +388,6 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	results$X <- X
 	results$offset <- off
 	results$eta <- eta
-	results$R.a <- R.a
   results$dropped <- dropid
 	class(results) <- "geem"
 	return(results)
@@ -881,13 +879,12 @@ print.summary.geem <- function(x, ...){
 
 ### print function for geem object
 print.geem <- function(x, ...){
-	Coefs <- matrix(0, nrow=1, ncol =length(x$beta))
-	Coefs[1,] <- x$beta
-	colnames(Coefs) <- x$coefnames
-	rownames(Coefs) <- NULL
+  coefdf <- data.frame(x$beta)
+  rownames(coefdf) <- x$coefnames
+  colnames(coefdf) <- ""
 	print(x$call)
 	cat("\n", "Coefficients:", "\n")
-	print(Coefs)
+  print(t(coefdf))
 	cat("\n Scale Parameter: ", x$phi, "\n")
 	cat("\n Correlation Model: ", x$corr)
 	cat("\n Estimated Correlation Parameters: ", x$alpha, "\n")
