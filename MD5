@@ -1,4 +1,9 @@
-ab700cf31bc910fb52acf26e8c999847 *DESCRIPTION
+2f14c1822b5fb74ccbee1040bebfbb00 *DESCRIPTION
 9016905d9020d9f69ad9e7482d010cf0 *NAMESPACE
-ee3ec2eabc34dfb82da47fdc449daef0 *R/geem.R
-48bc5f66c11eda17715632500fb9c953 *man/geem.Rd
+f39fcc8145e7fb3251cd429c2dc06e6f *R/geem.R
+7e1df84141f327fe75de148dae6ebb85 *R/print.R
+8908ada54ba9e824d12abfcd71ab1894 *R/updatealpha.R
+80a195c5fd96de408bb6d8692201a406 *R/updatematrices.R
+93aa31844cc7aec0e22630b9574279f2 *R/userstruct.R
+b0279a3fd3d45cbb951e8d6b6d876c8c *R/utility.R
+e42e77854721b5d972903d4eb182a18e *man/geem.Rd

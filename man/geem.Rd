@@ -12,7 +12,7 @@ Calculate coefficients and nuisance parameters using generalized estimating equa
 \usage{
 geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independence",
  Mv = 1, weights = NULL, corr.mat = NULL, init.beta = NULL,
- init.alpha = NULL, init.phi = NULL, scale.fix = FALSE, sandwich = TRUE, 
+ init.alpha = NULL, init.phi = 1, scale.fix = FALSE, sandwich = TRUE, 
  maxit = 20, tol = 1e-05)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -21,7 +21,7 @@ geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independen
 a formula expression similar to that for \code{\link{glm}}, of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
 }
   \item{id}{
-a vector identifying the clusters.  For instance, this could be subject id.  Data are assumed to be sorted such that observations in a cluster are in consecutive rows.  Further, higher numbered rows in a cluster are assumed to be later, and this determines the correlation structure.
+a vector identifying the clusters.  For instance, this could be subject id.  Data are assumed to be sorted such that observations in a cluster are in consecutive rows.  Further, higher numbered rows in a cluster are assumed to be later, and this determines the correlation structure.  If NULL, then each observation is assigned its own cluster.
 }
   \item{data}{
 an optional data frame containing the variables in the model.
