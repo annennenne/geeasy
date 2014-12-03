@@ -1,7 +1,7 @@
-2f14c1822b5fb74ccbee1040bebfbb00 *DESCRIPTION
+47ee20ccfcd5f4ade91ac4f08dab6f57 *DESCRIPTION
 9016905d9020d9f69ad9e7482d010cf0 *NAMESPACE
-f39fcc8145e7fb3251cd429c2dc06e6f *R/geem.R
-7e1df84141f327fe75de148dae6ebb85 *R/print.R
+b0dba16ababacee9e6e21c7e6d13851b *R/geem.R
+f768bb287f93c77ebc888c7a21369411 *R/print.R
 8908ada54ba9e824d12abfcd71ab1894 *R/updatealpha.R
 80a195c5fd96de408bb6d8692201a406 *R/updatematrices.R
 93aa31844cc7aec0e22630b9574279f2 *R/userstruct.R

@@ -30,10 +30,10 @@ print.summary.geem <- function(x, ...){
   Coefs[,5] <- x$p
   
   #print("Call: ", object$call, "\n")
-  print(Coefs)
-  cat("\n Est. Correlation: ", x$alpha, "\n")
+  print(signif(Coefs, digits=4))
+  cat("\n Est. Correlation: ", signif(x$alpha, digits=4), "\n")
   cat(" Correlation Structure: ", x$corr, "\n")
-  cat(" Est. Scale Parameter: ", x$phi, "\n")
+  cat(" Est. Scale Parameter: ", signif(x$phi, digits=4), "\n")
   cat("\n Number of GEE iterations:", x$niter, "\n")
   cat(" Number of Clusters: ", length(x$clusz), "   Maximum Cluster Size: ", max(x$clusz), "\n")
   cat(" Number of observations with nonzero weight: ", sum(x$weights != 0), "\n")
@@ -41,15 +41,15 @@ print.summary.geem <- function(x, ...){
 
 ### print function for geem object
 print.geem <- function(x, ...){
-  coefdf <- data.frame(x$beta)
+  coefdf <- signif(data.frame(x$beta), digits=4)
   rownames(coefdf) <- x$coefnames
   colnames(coefdf) <- ""
   print(x$call)
   cat("\n", "Coefficients:", "\n")
   print(t(coefdf))
-  cat("\n Scale Parameter: ", x$phi, "\n")
+  cat("\n Scale Parameter: ", signif(x$phi, digits=4), "\n")
   cat("\n Correlation Model: ", x$corr)
-  cat("\n Estimated Correlation Parameters: ", x$alpha, "\n")
+  cat("\n Estimated Correlation Parameters: ", signif(x$alpha, digits=4), "\n")
   cat("\n Number of clusters: ", length(x$clusz), "  Maximum cluster size: ", max(x$clusz), "\n")
   cat(" Number of observations with nonzero weight: ", sum(x$weights != 0), "\n")
 }

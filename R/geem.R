@@ -379,7 +379,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
   dat <- model.frame(formula, data, na.action=na.pass)
   X <- model.matrix(formula, dat)
   
-  
+  if(alpha.new == "independent"){alpha.new <- 0}
 	results <- list()
 	results$beta <- as.vector(beta)
 	results$phi <- phi
