@@ -54,3 +54,6 @@ print.geem <- function(x, ...){
   cat(" Number of observations with nonzero weight: ", sum(x$weights != 0), "\n")
 }
 
+#print.coef.geem <- function(x, ...){
+#  print(signif(x, 3))
+#}

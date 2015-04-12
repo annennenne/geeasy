@@ -92,4 +92,8 @@ predict.geem <- function(object, newdata = NULL,...){
   }
 }
 
-
+coef.geem <- function(object, ...){
+  coefs <- object$beta
+  names(coefs) <- object$coefnames
+  return(coefs)
+}

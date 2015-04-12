@@ -14,7 +14,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
     ### First, get all the relevant elements from the arguments
   dat <- model.frame(formula, data, na.action=na.pass)
   nn <- dim(dat)[1]
-  
+
   if(typeof(data) == "environment"){
     id <- id
     weights <- weights
@@ -26,7 +26,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
       if(length(subj.col) > 0){
         id <- data[,subj.col]
       }else{
-        id <- parent.frame()$id
+        id <- eval(call$id, envir=parent.frame())
       }
     }else if(is.null(call$id)){
       id <- 1:nn
@@ -37,7 +37,7 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
       if(length(weights.col) > 0){
         weights <- data[,weights.col]
       }else{
-        weights <- parent.frame()$weights
+        weights <- eval(call$weights, envir=parent.frame())
       }
     }else if(is.null(call$weights)){
       weights <- NULL
