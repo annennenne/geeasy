@@ -1,5 +1,6 @@
 export(geem)
 import(Matrix)
+importFrom("stats", family)
 S3method(summary,geem)
 S3method(print,geem)
 S3method(fitted,geem)
@@ -7,3 +8,4 @@ S3method(print,summary.geem)
 
 S3method(predict,geem)
 S3method(coef, geem)
+S3method(family, geem)

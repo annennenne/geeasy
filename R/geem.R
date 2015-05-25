@@ -1,11 +1,19 @@
 geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = "independence", Mv = 1, weights = NULL, corr.mat = NULL, init.beta=NULL, init.alpha=NULL, init.phi = 1, scale.fix=FALSE, sandwich=TRUE, maxit=20, tol=0.00001){
   call <- match.call()
   
-  FunList <- getfam(family)
-  LinkFun <- FunList$LinkFun
-  VarFun <- FunList$VarFun
-  InvLink <- FunList$InvLink
-  InvLinkDeriv <- FunList$InvLinkDeriv
+  famret <- getfam(family)
+  
+  if(inherits(famret, "family")){
+    LinkFun <- famret$linkfun
+    InvLink <- famret$linkinv
+    VarFun <- famret$variance
+    InvLinkDeriv <- famret$mu.eta
+  }else{
+    LinkFun <- famret$LinkFun
+    VarFun <- famret$VarFun
+    InvLink <- famret$InvLink
+    InvLinkDeriv <- famret$InvLinkDeriv
+  }  
   
   if(scale.fix & is.null(init.phi)){
     stop("If scale.fix=TRUE, then init.phi must be supplied")
@@ -395,12 +403,13 @@ geem <- function(formula, id,data = parent.frame(), family = gaussian, corstr = 
 	results$call <- call
 	results$corr <- cor.vec[cor.match]
 	results$clusz <- len
-	results$FunList <- FunList
+	results$FunList <- famret
 	results$X <- X
 	results$offset <- off
 	results$eta <- eta
   results$dropped <- dropid
   results$weights <- weights
+  results$y <- Y
 	class(results) <- "geem"
 	return(results)
 }

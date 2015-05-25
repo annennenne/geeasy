@@ -1,16 +1,16 @@
 Package: geeM
 Type: Package
-Title: Fit Generalized Estimating Equations
-Version: 0.7.3
-Date: 2015-04-12
+Title: Solve Generalized Estimating Equations
+Version: 0.7.4
+Date: 2015-05-25
 Author: Lee S. McDaniel and Nick Henderson
 Maintainer: Lee S. McDaniel <lmcda4@lsuhsc.edu>
 Depends: Matrix
 Suggests: geepack
-Description: Allows generalized estimating equation fits with user-specified link and variance functions.
+Description: GEE estimation of the parameters in mean structures with possible correlation between the outcomes. User-specified mean link and variance functions are allowed, along with observation weighting.  The "M" in the name "geeM" is meant to emphasize the use of the Matrix package, which allows for an implementation based fully in R.
 License: GPL (>= 2)
 ByteCompile: TRUE
-Packaged: 2015-04-12 23:20:55 UTC; admin
+Packaged: 2015-05-25 16:27:16 UTC; lmcda4
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2015-04-13 12:38:57
+Date/Publication: 2015-05-26 02:14:26

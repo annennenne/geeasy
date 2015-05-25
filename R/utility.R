@@ -5,30 +5,26 @@ getfam <- function(family){
   
   if(is.function(family)){
     family <- family()
-    LinkFun <- family$linkfun
-    InvLink <- family$linkinv
-    VarFun <- family$variance
-    InvLinkDeriv <- family$mu.eta
-    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv)    
-  }else if(is.list(family) && !is.null(family$family)){
-    LinkFun <- family$linkfun
-    InvLink <- family$linkinv
-    VarFun <- family$variance
-    InvLinkDeriv <- family$mu.eta
-    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv)    
+    return(family)
+  }else if(inherits(family, "family")){
+    return(family)
   }else if(is.list(family)){
     if(length(match(names(family), c("LinkFun", "VarFun", "InvLink", "InvLinkDeriv"))) == 4){
+      famname <- "custom"
       LinkFun <- family$LinkFun
       InvLink <- family$InvLink
       VarFun <- family$VarFun
       InvLinkDeriv <- family$InvLinkDeriv
     }else{
+      famname <- "custom"
       LinkFun <- family[[1]]
       VarFun <- family[[2]]
       InvLink <- family[[3]]
       InvLinkDeriv <- family[[4]]
     }
-    FunList <- list("LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv) 
+    
+    
+    FunList <- list("family"= famname, "LinkFun" = LinkFun, "VarFun" = VarFun, "InvLink" = InvLink, "InvLinkDeriv" = InvLinkDeriv) 
     return(FunList)
   }else{
     stop("problem with family argument: should be string, family object, or list of functions")
@@ -97,3 +93,11 @@ coef.geem <- function(object, ...){
   names(coefs) <- object$coefnames
   return(coefs)
 }
+
+family.geem <- function(object,...){
+  
+  return(object$FunList)
+}
+
+
+
