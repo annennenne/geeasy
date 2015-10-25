@@ -1,7 +1,7 @@
 
 ### Update the alpha (possibly) vector for the USERDEFINED correlation matrix.  
-updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, row.vec, col.vec, corr.list, included, includedlen, allobs){
-  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, row.vec, col.vec, corr.list, included, includedlen, allobs,sqrtW){
+  Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
   
   ml <- max(len)
   
@@ -30,21 +30,25 @@ updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, r
 
 
 ### Calculate the parameter for the EXCHANGEABLE correlation structure
-updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen){
+updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, sqrtW){
   
-  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
+  #print(mean(StdErr))
+  #print(mean(YY-mu))
   
-  BlockDiag <- Resid %*% BlockDiag %*% Resid
-  denom <-  phi*(crossprod(includedlen, pmax(includedlen-1, 0))/2 - p)
-  alpha <- (sum(BlockDiag) - phi*(sum(includedlen)-p))/2
+  denom <- phi*(sum(triu(included %*% BlockDiag %*% included, k=1)) - p)
+
+  alpha <- sum(triu(Resid %*% BlockDiag %*% Resid, k=1))
+
   alpha.new <- alpha/denom
+
   return(alpha.new)
 }
 
 ### Calculate the parameters for the M-DEPENDENT correlation structure
-updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, m, included, includedlen, allobs){
+updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, m, included, includedlen, allobs, sqrtW){
   
-  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
   
   BlockDiag <- Resid %*% BlockDiag %*% Resid
   alpha.new <- vector("numeric", m)
@@ -69,52 +73,55 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, Bloc
 }
 
 ### Calculate the parameter for the AR-1 correlation, also used for 1-DEPENDENT
-updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs){
-  K <- length(len)
-  oneobs <- which(len == 1)
+updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs, sqrtW, BlockDiag){
+  #K <- length(len)
+  #oneobs <- which(len == 1)
   
-  resid <- diag(StdErr %*% included %*% Diagonal(x = YY - mu))
+  Resid <- StdErr %*%  sqrtW %*% Diagonal(x = YY - mu)
   
-  len2 = len
-  includedvec2 <- includedvec
-  if(length(oneobs) > 0){
-    index <- c(0, (cumsum(len) -len)[2:K], sum(len))
-    len2 <- len[-oneobs]
-    resid <- resid[-index[oneobs]]
-    includedvec2 <- includedvec[-index[oneobs]]
-  }
+  #len2 = len
+  #includedvec2 <- includedvec
+  #if(length(oneobs) > 0){
+  #  index <- c(0, (cumsum(len) -len)[2:K], sum(len))
+  #  len2 <- len[-oneobs]
+  #  resid <- resid[-index[oneobs]]
+  #  includedvec2 <- includedvec[-index[oneobs]]
+  #}
   
+  denom <- phi*(sum(band(triu(included %*% BlockDiag %*% included, k=1), k1=1, k2=1)) - p)
   
-  nn <- length(resid)
-  lastobs <- cumsum(len2)
+  num <- sum(band(triu(Resid %*% BlockDiag %*% Resid, k=1), k1=1, k2=1))
+
+  #nn <- length(resid)
+  #lastobs <- cumsum(len2)
   
-  shiftresid1 <- resid[1:nn-1]
-  shiftresid2 <- resid[2:nn]
-  if(!allobs){
-    shiftresid1 <- shiftresid1[-lastobs]
-    shiftresid2 <- shiftresid2[-lastobs]
-    s1incvec2 <- includedvec2[1:nn-1]
-    s2incvec2 <- includedvec2[2:nn]
-    s1incvec2 <- s1incvec2[-lastobs]
-    s2incvec2 <- s2incvec2[-lastobs]
+  #shiftresid1 <- resid[1:nn-1]
+  #shiftresid2 <- resid[2:nn]
+  #if(!allobs){
+  #  shiftresid1 <- shiftresid1[-lastobs]
+  #  shiftresid2 <- shiftresid2[-lastobs]
+    #s1incvec2 <- includedvec2[1:nn-1]
+    #s2incvec2 <- includedvec2[2:nn]
+    #s1incvec2 <- s1incvec2[-lastobs]
+    #s2incvec2 <- s2incvec2[-lastobs]
     
-    alphasum <- crossprod(shiftresid1, shiftresid2)
+   # alphasum <- crossprod(shiftresid1, shiftresid2)
     
-    denom <- (as.vector(crossprod(s1incvec2, s2incvec2)) - p)*phi
-  }else{
-    alphasum <- crossprod(shiftresid1[-(cumsum(len2))], shiftresid2[-(cumsum(len2))])
-    denom <- (sum(len2-1) - p)*phi
-  }
+    #denom <- (as.vector(crossprod(s1incvec2, s2incvec2)) - p)*phi
+  #}else{
+  #  alphasum <- crossprod(shiftresid1[-lastobs], shiftresid2[-lastobs])
+    #denom <- (sum(len2-1) - p)*phi
+  #}
   
-  alpha <- alphasum/denom
+  alpha <- num/denom
   return(as.numeric(alpha))
 }
 
 
 ### Calculate alpha values for UNSTRUCTURED correlation
-updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, allobs){
+updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, allobs, sqrtW){
   
-  Resid <- StdErr %*% included %*% Diagonal(x = YY - mu)
+  Resid <- StdErr %*% included %*% sqrtW %*%Diagonal(x = YY - mu)
   
   ml <- max(len)
   

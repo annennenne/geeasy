@@ -41,13 +41,25 @@ getBlockDiag <- function(len, xvec=NULL){
   
   row.vec <- col.vec <- vector("numeric", sum(len^2))
   add.vec <- cumsum(len) - len
-  index <- c(0, (cumsum(len^2) -len^2)[2:K], sum(len^2)) 
+  if(K == 1){
+    index <- c(0, sum(len^2))
+  }else{
+    index <- c(0, (cumsum(len^2) -len^2)[2:K], sum(len^2)) 
+  }
+  
   for(i in 1:K){
     row.vec[(index[i] + 1):(index[i+1])] <- rep.int( (1:len[i]) + add.vec[i], len[i])
     col.vec[(index[i] + 1):(index[i+1])] <- rep( (1:len[i]) + add.vec[i], each=len[i])
   }	
   BlockDiag <- sparseMatrix(i = row.vec, j = col.vec, x = xvec)
-  return(list(BDiag = as(BlockDiag, "symmetricMatrix"), row.vec =row.vec, col.vec=col.vec))
+  
+  if(!is.null(xvec)){
+    testsymm <- abs(sum(skewpart(BlockDiag)))
+    if(testsymm != 0) {
+      warning("Correlation matrix is not computed to be exactly symmetric. Taking only the symmetric part.")
+    }
+  }
+  return(list(BDiag = symmpart(BlockDiag), row.vec =row.vec, col.vec=col.vec))
 }
 
 
@@ -74,7 +86,8 @@ checkFixedMat <- function(corr.mat, len){
 
 ### fitted function for geem object
 fitted.geem <- function(object, ...){
-  InvLink <- object$FunList$InvLink
+  #InvLink <- object$FunList$InvLink
+  InvLink <- object$FunList[[if(object$FunList$family == "custom") "InvLink" else "linkinv"]]
   return(InvLink(object$eta))
 }
 
@@ -99,5 +112,38 @@ family.geem <- function(object,...){
   return(object$FunList)
 }
 
-
+dummyrows <- function(formula, dat, incomp, maxwave, wavespl, idspl){
+  missing <- missid <- misswave <- rep(0, sum(maxwave))
+  index <- 1
+  for(i in 1:length(wavespl)){
+    wa <- wavespl[[i]]
+    index <- index+1
+    for(j in 2:length(wa)){
+      wdiff <- wa[j] - wa[j-1] -1
+      if(wdiff > 0){
+        missing[index:(index+wdiff-1)] <- (wa[j-1]+1):(wa[j]-1)
+        missid[index:(index+wdiff-1)] <- idspl[[i]][1]
+      }
+      index <- index+wdiff+1
+    }
+  }
+  dat2 <- as.data.frame(matrix(nrow=sum(maxwave), ncol=dim(dat)[2]))
+  colnames(dat2) <- colnames(dat)
+  dat2[missing==0,] <- dat
+  dat2$id[missing > 0] <- missid[missing>0]
+  
+  dat2$weights[missing > 0] <- 0
+  dat2$waves[missing > 0] <- missing[missing > 0]
+  
+  NAcols <- which(!is.element(names(dat2), c("id", "waves", "weights")))
+  for(i in NAcols){
+    dat2[missing>0, NAcols[i]] <- median(dat2[,NAcols[i]], na.rm=TRUE)
+  }
+  
+  retdat <- model.frame(formula, dat2, na.action=na.pass)
+  retdat$id <- dat2$id
+  retdat$weights <- dat2$weights
+  retdat$waves <- dat2$waves
+  return(retdat)
+}
 

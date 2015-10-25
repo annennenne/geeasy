@@ -1,6 +1,9 @@
 export(geem)
 import(Matrix)
-importFrom("stats", family)
+importFrom("methods", "as")
+importFrom("stats", "family", "gaussian", "median", 
+		"model.frame", "model.matrix", "model.offset",
+		"model.response", "na.pass", "pnorm", "terms")
 S3method(summary,geem)
 S3method(print,geem)
 S3method(fitted,geem)

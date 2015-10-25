@@ -10,9 +10,9 @@ Fit Generalized Estimating Equations
 Calculate coefficients and nuisance parameters using generalized estimating equations.  Link and Variance functions can be specified by the user.  Similar to \code{\link{glm}}.
 }
 \usage{
-geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independence",
- Mv = 1, weights = NULL, corr.mat = NULL, init.beta = NULL,
- init.alpha = NULL, init.phi = 1, scale.fix = FALSE, sandwich = TRUE, 
+geem(formula, id, waves=NULL, data = parent.frame(), family = gaussian,
+ corstr = "independence", Mv = 1, weights = NULL, corr.mat = NULL, init.beta = NULL,
+ init.alpha = NULL, init.phi = 1, scale.fix = FALSE, nodummy=FALSE, sandwich = TRUE, 
  maxit = 20, tol = 1e-05)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -21,7 +21,10 @@ geem(formula, id, data = parent.frame(), family = gaussian, corstr = "independen
 a formula expression similar to that for \code{\link{glm}}, of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
 }
   \item{id}{
-a vector identifying the clusters.  For instance, this could be subject id.  Data are assumed to be sorted such that observations in a cluster are in consecutive rows.  Further, higher numbered rows in a cluster are assumed to be later, and this determines the correlation structure.  If NULL, then each observation is assigned its own cluster.
+a vector identifying the clusters. By default, data are assumed to be sorted such that observations in a cluster are in consecutive rows and higher numbered rows in a cluster are assumed to be later.  If NULL, then each observation is assigned its own cluster.
+}
+  \item{waves}{
+an integer vector identifying components of a cluster. For example, this could be a time ordering. If integers are skipped within a cluster, then dummy rows with weight 0 are added in an attempt to preserve the correlation structure (except if \code{corstr = "exchangeable"} or \code{"independent"}). This can be skipped by setting \code{nodummy=TRUE}.
 }
   \item{data}{
 an optional data frame containing the variables in the model.
@@ -61,6 +64,9 @@ an optional initial overdispersion parameter.  If not supplied, initialized to 1
   \item{scale.fix}{
 if set to \code{TRUE}, then the scale parameter is fixed at the value of \code{init.phi}.
 }
+  \item{nodummy}{
+  if set to \code{TRUE}, then dummy rows will not be added based on the values in \code{waves}.
+  }
   \item{sandwich}{
 if \code{TRUE}, calculate robust variance.
 }
