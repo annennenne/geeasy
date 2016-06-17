@@ -51,7 +51,8 @@ getAlphaInvUser <- function(alpha.new, len, struct.vec, user.row, user.col, row.
   }
   
   
-  corr.vec <- unlist(mat.inverses[len - min(len) + 1])
+  mat.finder <- match(len, mat.sizes)
+  corr.vec <- unlist(mat.inverses[mat.finder])
   return(as(sparseMatrix(i=row.vec, j=col.vec, x=corr.vec), "symmetricMatrix"))
 }
 

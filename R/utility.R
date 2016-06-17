@@ -137,7 +137,7 @@ dummyrows <- function(formula, dat, incomp, maxwave, wavespl, idspl){
   
   NAcols <- which(!is.element(names(dat2), c("id", "waves", "weights")))
   for(i in NAcols){
-    dat2[missing>0, NAcols[i]] <- median(dat2[,NAcols[i]], na.rm=TRUE)
+    dat2[missing>0, i] <- median(dat2[,i], na.rm=TRUE)
   }
   
   retdat <- model.frame(formula, dat2, na.action=na.pass)
@@ -145,5 +145,9 @@ dummyrows <- function(formula, dat, incomp, maxwave, wavespl, idspl){
   retdat$weights <- dat2$weights
   retdat$waves <- dat2$waves
   return(retdat)
+}
+
+fillMatList <- function(real.sizes){
+  
 }
 

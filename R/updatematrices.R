@@ -51,7 +51,10 @@ getAlphaInvMDEP <- function(alpha.new, len, row.vec, col.vec){
   m <- length(alpha.new)
   
   # First get all of the unique block sizes.
+  #real.sizes <- sort(unique(len))
+  #mat.sizes <- fillMatSizes(real.sizes)
   mat.sizes <- sort(unique(len))
+  #mat.sizes <- len
   corr.vec <- vector("numeric", sum(len^2))
   mat.inverses <- list()
   index <- c(0, (cumsum(len^2) -len^2)[2:K], sum(len^2)) 
@@ -69,11 +72,14 @@ getAlphaInvMDEP <- function(alpha.new, len, row.vec, col.vec){
       }
       
       tmp <- bandSparse(mat.sizes[i], k=c(0:mtmp),diagonals=a1, symmetric=T )
+      
       mat.inverses[[i]] <- as.vector(solve(tmp))
     }
   }
   # Put all inverted matrices in a vector in the right order
-  corr.vec <- unlist(mat.inverses[len - min(len) + 1])
+  mat.finder <- match(len, mat.sizes)
+  corr.vec <- unlist(mat.inverses[mat.finder])
+  
   return(as(sparseMatrix(i=row.vec, j=col.vec, x=corr.vec), "symmetricMatrix"))
 }
 
@@ -108,7 +114,9 @@ getAlphaInvUnstruc <- function(alpha.new, len, row.vec, col.vec){
     mat.inverses[[i]] <- as.vector(solve(tmp))		
   }
   
-  corr.vec <- unlist(mat.inverses[len - min(len) + 1])
+  mat.finder <- match(len, mat.sizes)
+  
+  corr.vec <- unlist(mat.inverses[mat.finder])
   return(as(sparseMatrix(i=row.vec, j=col.vec, x=corr.vec), "symmetricMatrix"))
   
 }
@@ -132,8 +140,8 @@ getAlphaInvFixed <- function(mat, len){
     mat.inverses[[i]] <- as.vector(solve(tmp))
   }
   
-  corr.vec <- unlist(mat.inverses[len - min(len) + 1])
-  
+  mat.finder <- match(len, mat.sizes)
+  corr.vec <- unlist(mat.inverses[mat.finder])  
   return(as(getBlockDiag(len, corr.vec)$BDiag, "symmetricMatrix"))	
 }
 

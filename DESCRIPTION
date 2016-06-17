@@ -1,17 +1,22 @@
 Package: geeM
 Type: Package
 Title: Solve Generalized Estimating Equations
-Version: 0.8.0
-Date: 2015-10-23
-Author: Lee S. McDaniel and Nick Henderson
-Maintainer: Lee S. McDaniel <lmcda4@lsuhsc.edu>
+Version: 0.9.0
+Authors@R: c(person("Lee", "McDaniel", role = c("aut", "cre"),email = "lmcda4@lsuhsc.edu"),
+			person("Nick", "Henderson", role = "aut"),
+			person("Melanie", "Prague", role = "ctb",comment = "Suggested code to fix weighting"))
+Date: 2016-6-16
+Author: Lee McDaniel [aut, cre],
+		Nick Henderson [aut],
+		Melanie Prague [ctb] (Suggested code to fix weighting)
+Maintainer: Lee McDaniel <lmcda4@lsuhsc.edu>
 Depends: Matrix
 Imports: stats, methods
 Suggests: geepack
 Description: GEE estimation of the parameters in mean structures with possible correlation between the outcomes. User-specified mean link and variance functions are allowed, along with observation weighting.  The "M" in the name "geeM" is meant to emphasize the use of the Matrix package, which allows for an implementation based fully in R.
-License: GPL (>= 2)
+License: GPL-3
 ByteCompile: TRUE
-Packaged: 2015-10-24 22:32:22 UTC; lmcda4
 NeedsCompilation: no
+Packaged: 2016-06-17 16:55:03 UTC; lmcda4
 Repository: CRAN
-Date/Publication: 2015-10-25 08:55:56
+Date/Publication: 2016-06-17 21:46:26

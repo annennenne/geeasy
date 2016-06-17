@@ -47,7 +47,7 @@ a character string specifying the correlation structure.  Allowed structures are
 for \code{"m-dependent"}, the value for \code{m}.
 }
 \item{weights}{
-  A vector of weights for each observation.  If an observation has weight 0, it is excluded from the calculations of any parameters.  Observations with a \code{NA} anywhere (even in variables not included in the model) will be assigned a weight of 0.
+  A vector of weights for each observation.  If an observation has weight 0, it is excluded from the calculations of any parameters.  Observations with a \code{NA} anywhere (even in variables not included in the model) will be assigned a weight of 0.  Note that these weights are now the same as PROC GEE weights and not PROC GENMOD.
 }
   \item{corr.mat}{
 the correlation matrix for \code{"fixed"}.  Matrix should be symmetric with dimensions >= the maximum cluster size.  If the correlation structure is \code{"userdefined"}, then this is a matrix describing which correlations are the same.
