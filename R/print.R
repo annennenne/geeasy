@@ -3,7 +3,7 @@ summary.geem <- function(object, ...)  {
   Coefs <- matrix(NA,nrow=length(object$beta),ncol=5)
   Coefs[,1] <- c(object$beta)
   naive <- is.character(object$var)
-  if(!naive & any(diag(object$var) < 0) ){
+  if(!naive && any(diag(object$var) < 0) ){
     naive <- TRUE
     warning("Some elements of robust variance estimate < 0.  Reporting model based SE.")
   }

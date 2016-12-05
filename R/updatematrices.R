@@ -41,7 +41,9 @@ buildAlphaInvAR <- function(len){
 
 ### Returns the full inverse matrix of the correlation for EXCHANGEABLE structure
 getAlphaInvEX <- function(alpha.new, diag.vec, BlockDiag){
-  return(as(BlockDiag %*% Diagonal(x = (-alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)))) + Diagonal( x = ((1+(diag.vec-2)*alpha.new)/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)) + alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)))), "symmetricMatrix"))
+  return(as(BlockDiag %*% Diagonal(x = (-alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))))
+            + Diagonal( x = ((1+(diag.vec-2)*alpha.new)/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))
+                             + alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)))), "symmetricMatrix"))
 }
 
 ### Get the inverse of M-DEPENDENT correlation matrix.

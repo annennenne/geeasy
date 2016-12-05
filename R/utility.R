@@ -35,6 +35,7 @@ getfam <- function(family){
 ### each cluster size.  By default, each block is just a matrix filled with ones.
 getBlockDiag <- function(len, xvec=NULL){
   K <- length(len)
+  
   if(is.null(xvec)){
     xvec <- rep.int(1, sum(len^2))
   }
@@ -151,3 +152,6 @@ fillMatList <- function(real.sizes){
   
 }
 
+model.matrix.geem <- function(object, ...){
+  return(model.matrix(object$formula, data=model.frame(object)))
+}

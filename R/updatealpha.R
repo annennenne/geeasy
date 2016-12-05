@@ -1,6 +1,8 @@
 
 ### Update the alpha (possibly) vector for the USERDEFINED correlation matrix.
-updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, row.vec, col.vec, corr.list, included, includedlen, allobs,sqrtW){
+updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid,
+                            p, BlockDiag, row.vec, col.vec, corr.list,
+                            included, includedlen, allobs,sqrtW, useP){
   Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
 
   ml <- max(len)
@@ -20,8 +22,10 @@ updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, r
 
     bdtmp <- BlockDiag[cbind(newrow, newcol)]
     if(allobs){
-      denom <- phi*(length(newrow) - p)
-    }else{denom <- phi*(sum(bdtmp!=0)-p)}
+      denom <- phi*(length(newrow) - useP * p)
+    }else{
+      denom <- phi*(sum(bdtmp!=0) - useP * p)
+    }
     alpha.new[i] <- sum(bdtmp)/denom
   }
   return(alpha.new)
@@ -30,26 +34,31 @@ updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid, p, BlockDiag, r
 
 
 ### Calculate the parameter for the EXCHANGEABLE correlation structure
-updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, sqrtW){
+updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr,
+                          Resid, p, BlockDiag, included,
+                          includedlen, sqrtW, useP){
   W <- sqrtW^2
   Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
   #print(mean(StdErr))
   #print(mean(YY-mu))
+  
+  denom <- phi*(sum(triu(included %*% BlockDiag %*% included, k=1)) - useP * p)
 
-  denom <- phi*(sum(triu(included %*% BlockDiag %*% included, k=1)) - p)
-
-  BlockDiag <- StdErr  %*%Diagonal(x = YY - mu) %*% BlockDiag %*% W %*% included %*% Diagonal(x = YY - mu)  %*% StdErr
-
+  #BlockDiag <- StdErr  %*%Diagonal(x = YY - mu) %*%  BlockDiag %*% W %*% included %*% Diagonal(x = YY - mu)  %*% StdErr
+  BlockDiag <- StdErr  %*%Diagonal(x = YY - mu) %*%  included %*% BlockDiag %*% W %*% Diagonal(x = YY - mu)  %*% StdErr
+    
   alpha <- sum(triu(BlockDiag, k=1))
 
   #alpha <- sum(triu(Resid %*% BlockDiag %*% Resid, k=1))
   alpha.new <- alpha/denom
-
+  
   return(alpha.new)
 }
 
 ### Calculate the parameters for the M-DEPENDENT correlation structure
-updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, m, included, includedlen, allobs, sqrtW){
+updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len,
+                            StdErr, Resid, p, BlockDiag, m,
+                            included, includedlen, allobs, sqrtW, useP){
 
   Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
 
@@ -59,8 +68,11 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, Bloc
     if(sum(includedlen>i) > p){
       bandmat <- drop0(band(BlockDiag, i,i))
 
-      if(allobs){alpha.new[i] <- sum(bandmat)/(phi*(sum(as.numeric(len>i)*(len-i))-p))
-      }else{alpha.new[i] <- sum( bandmat)/(phi*(length(bandmat@i)-p))}
+      if(allobs){
+        alpha.new[i] <- sum(bandmat)/(phi*(sum(as.numeric(len>i)*(len-i)) - useP * p))
+      }else{
+        alpha.new[i] <- sum( bandmat)/(phi*(length(bandmat@i) - useP * p))
+      }
 
     }else{
       # If we don't have many observations for a certain parameter, don't divide by p
@@ -68,7 +80,9 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, Bloc
       bandmat <- drop0(band(BlockDiag, i,i))
 
       if(allobs){alpha.new[i] <- sum(bandmat)/(phi*(sum(as.numeric(len>i)*(len-i))))
-      }else{alpha.new[i] <- sum( bandmat)/(phi*length(bandmat@i))}
+      }else{
+        alpha.new[i] <- sum( bandmat)/(phi*length(bandmat@i))
+      }
 
     }
   }
@@ -76,7 +90,9 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, Bloc
 }
 
 ### Calculate the parameter for the AR-1 correlation, also used for 1-DEPENDENT
-updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, includedlen, includedvec, allobs, sqrtW, BlockDiag){
+updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p,
+                          included, includedlen, includedvec, allobs,
+                          sqrtW, BlockDiag, useP){
   #K <- length(len)
   #oneobs <- which(len == 1)
 
@@ -91,7 +107,7 @@ updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, inc
   #  includedvec2 <- includedvec[-index[oneobs]]
   #}
 
-  denom <- phi*(sum(band(triu(included %*% BlockDiag %*% included, k=1), k1=1, k2=1)) - p)
+  denom <- phi*(sum(band(triu(included %*% BlockDiag %*% included, k=1), k1=1, k2=1)) - useP * p)
 
   num <- sum(band(triu(Resid %*% BlockDiag %*% Resid, k=1), k1=1, k2=1))
 
@@ -115,14 +131,16 @@ updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p, included, inc
   #  alphasum <- crossprod(shiftresid1[-lastobs], shiftresid2[-lastobs])
     #denom <- (sum(len2-1) - p)*phi
   #}
-
+  
   alpha <- num/denom
   return(as.numeric(alpha))
 }
 
 
 ### Calculate alpha values for UNSTRUCTURED correlation
-updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, BlockDiag, included, includedlen, allobs, sqrtW){
+updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid,
+                               p, BlockDiag, included, includedlen,
+                               allobs, sqrtW, useP){
 
   Resid <- StdErr %*% included %*% sqrtW %*%Diagonal(x = YY - mu)
   
@@ -149,8 +167,10 @@ updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p, B
     newcol <- index[which(len>=col.vec[i])] + col.vec[i]
     bdtmp <- BlockDiag[cbind(newrow, newcol)]
     if(allobs){
-      denom <- (phi*(length(newrow)-p))
-    }else{denom <- (phi*(sum(bdtmp!=0)-p))}
+      denom <- (phi*(length(newrow) - useP * p))
+    }else{
+      denom <- (phi*(sum(bdtmp!=0) - useP * p))
+    }
     alpha.new[i] <- sum(bdtmp)/denom
   }
 

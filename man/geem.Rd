@@ -13,7 +13,7 @@ Calculate coefficients and nuisance parameters using generalized estimating equa
 geem(formula, id, waves=NULL, data = parent.frame(), family = gaussian,
  corstr = "independence", Mv = 1, weights = NULL, corr.mat = NULL, init.beta = NULL,
  init.alpha = NULL, init.phi = 1, scale.fix = FALSE, nodummy=FALSE, sandwich = TRUE, 
- maxit = 20, tol = 1e-05)
+ useP = TRUE, maxit = 20, tol = 1e-05)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -70,6 +70,10 @@ if set to \code{TRUE}, then the scale parameter is fixed at the value of \code{i
   \item{sandwich}{
 if \code{TRUE}, calculate robust variance.
 }
+  \item{useP}{
+  if set to \code{FALSE}, do not use the n-p correction for dispersion and correlation estimates, as in Liang and Zeger. This can be useful when the number of observations is small, as subtracting p may yield 
+  correlations greater than 1.
+  }
   \item{maxit}{
 maximum number of iterations.
 }
