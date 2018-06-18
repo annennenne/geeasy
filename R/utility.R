@@ -117,17 +117,22 @@ dummyrows <- function(formula, dat, incomp, maxwave, wavespl, idspl){
   missing <- missid <- misswave <- rep(0, sum(maxwave))
   index <- 1
   for(i in 1:length(wavespl)){
-    wa <- wavespl[[i]]
-    index <- index+1
-    for(j in 2:length(wa)){
-      wdiff <- wa[j] - wa[j-1] -1
-      if(wdiff > 0){
-        missing[index:(index+wdiff-1)] <- (wa[j-1]+1):(wa[j]-1)
-        missid[index:(index+wdiff-1)] <- idspl[[i]][1]
+      wa <- wavespl[[i]]
+      if(incomp[i]==1){
+        index <- index+1
+        for(j in 2:length(wa)){
+          wdiff <- wa[j] - wa[j-1] -1
+          if(wdiff > 0){
+            missing[index:(index+wdiff-1)] <- (wa[j-1]+1):(wa[j]-1)
+            missid[index:(index+wdiff-1)] <- idspl[[i]][1]
+          }
+          index <- index+wdiff+1
+        }
+      }else{
+        index <- index+length(wa)
       }
-      index <- index+wdiff+1
     }
-  }
+  
   dat2 <- as.data.frame(matrix(nrow=sum(maxwave), ncol=dim(dat)[2]))
   colnames(dat2) <- colnames(dat)
   dat2[missing==0,] <- dat

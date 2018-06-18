@@ -42,13 +42,20 @@ updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr,
   #print(mean(StdErr))
   #print(mean(YY-mu))
   
-  denom <- phi*(sum(triu(included %*% BlockDiag %*% included, k=1)) - useP * p)
-
+  
+  #denom <- phi*(sum(triu(included %*% BlockDiag %*% included, k=1)) - useP * p)
+  denom <- phi*(sum(includedlen*(includedlen-1))/2 - useP * p)
+  
   #BlockDiag <- StdErr  %*%Diagonal(x = YY - mu) %*%  BlockDiag %*% W %*% included %*% Diagonal(x = YY - mu)  %*% StdErr
   BlockDiag <- StdErr  %*%Diagonal(x = YY - mu) %*%  included %*% BlockDiag %*% W %*% Diagonal(x = YY - mu)  %*% StdErr
     
   alpha <- sum(triu(BlockDiag, k=1))
 
+  numpos <- sum(triu(BlockDiag,k=1) != 0)
+  #print(numpos/2)
+  #print(sum(triu(included %*% BlockDiag %*% included, k=1)))
+  #print(sum(includedlen*(includedlen-1))/2)
+  
   #alpha <- sum(triu(Resid %*% BlockDiag %*% Resid, k=1))
   alpha.new <- alpha/denom
   
@@ -96,7 +103,7 @@ updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p,
   #K <- length(len)
   #oneobs <- which(len == 1)
 
-  Resid <- StdErr %*%  sqrtW %*% Diagonal(x = YY - mu)
+  Resid <- StdErr %*%  included %*% sqrtW %*% Diagonal(x = YY - mu)
 
   #len2 = len
   #includedvec2 <- includedvec

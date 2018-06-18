@@ -1,11 +1,11 @@
-6360c201b66c4ab7edb19d84747c9d87 *DESCRIPTION
+b87bdbaeff43c99228e75e0501eb4c17 *DESCRIPTION
 1442537780a9ad8928d79aa8caab0b54 *NAMESPACE
-1ab88ed3af1ca997d6d77f164643af25 *R/geem.R
+7626e32aee2dbb0be8bd84737346c6aa *R/geem.R
 ecd9b5bb56ca3ac3178f5d447d0f2a17 *R/print.R
-4f6b66c16cb757e876e9b80abb1856b1 *R/updatealpha.R
+c058de7dc0bd9eebddb407a394983204 *R/updatealpha.R
 1eeb5c0c63318740aa4f55e4ea31cd59 *R/updatematrices.R
 19c470067ca34442281f58cf9e502d77 *R/userstruct.R
-cf0cb1e60acc2d822b8ca3d09633132c *R/utility.R
+951a03148c49678a48d3dc6a808fc25b *R/utility.R
 2521b743be37977078ba5327051e2da5 *inst/CITATION
 f0c827f7cb5522d1098b0bf472e4e5d0 *man/geem.Rd
 27040f4316acb0481f33a73dd40a56e4 *tests/testthat.R
