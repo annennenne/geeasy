@@ -24,3 +24,4 @@ NeedsCompilation: no
 Packaged: 2018-06-18 15:09:05 UTC; lmcda4
 Repository: CRAN
 Date/Publication: 2018-06-18 15:49:55 UTC
+RoxygenNote: 7.1.1
