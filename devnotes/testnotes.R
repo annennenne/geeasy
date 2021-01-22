@@ -55,9 +55,11 @@ res <- data.frame(corstr = rep(allCorStr, each = 3*4*3),
                   treat = rep(rep(c("treat", "treatwmiss1", "treatwmiss2", "treatwmiss3"), each = 3*3), 7),
                   waves =  rep(rep(c("none", "timeequi", "timegaps"), each = 3), 7*4),
                   identical = rep(NA, 7*3*3*4),
+                  numdiff = rep(NA, 7*3*3*4),
                   error_original = rep(NA, 7*3*3*4),
                   error_new = rep(NA, 7*3*3*4))
-source("helpers.R") #load list comparison function
+
+source("devnotes/helpers.R") #load list comparison function
 
 
 useFormula <- formula(outcome ~ baseline + center + sex + age + I(age^2))
@@ -101,8 +103,21 @@ for (i in 1:nrow(res)) {
   }
   
   if (!res$error_original[i] & !res$error_new[i]) {
-    res$identical[i] <- identicalLists(mm_original, mm_dev, ignore = c("call", "FunList"))
+#    idres <- identicalLists(mm_original, mm_dev, 
+#                            ignore = c("call", "FunList", "dropped"))
+    idres <- identicalLists(mm_original, mm_dev, 
+                            ignore = c("call", "FunList", "dropped",
+                                       "clusz", "X", "offset", "eta", 
+                                       "dropped", "weights", "terms", 
+                                       "y", "formula"))
+    if (is.logical(idres)) {
+      res$identical[i] <- idres
+    } else {
+      res$identical[i] <- FALSE
+      res$numdiff[i] <- idres
+    }
   }
 }
 
-sum(res$identical)
+
+View(res)

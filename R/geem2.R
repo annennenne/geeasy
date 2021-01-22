@@ -189,21 +189,9 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   
   call <- match.call()
   
- ###
-  #family stuff used to be here
- ###
-  
-  
   ### First, get all the relevant elements from the arguments
   dat <- model.frame(formula, data, na.action=na.pass)
   nn <- dim(dat)[1]
-  
-  #*#if (typeof(data) == "environment") {
-  #*#  id <- id ##?????
-  #*#  weights <- weights ###?????
-  #*#  if(is.null(call$weights)) weights <- rep(1, nn)
-  #*#  #    waves <- waves
-  #*#}
   
   #Make id / weight / waves argument so that they can match character
   #strings OR names provided in enclosing environment/data
@@ -226,9 +214,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
       } else {
         weights <- eval(call$weights, envir=parent.frame())
       }
-    } #*# else if(is.null(call$weights)){
-      #*# weights <- rep.int(1,nn)
-     #*#}
+    } 
     
     if(length(call$waves) == 1) {
       waves.col <- which(colnames(data) == call$waves)
@@ -244,8 +230,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   
   if(is.null(weights)) weights <- rep(1, nn)
   
-  if(!is.numeric(waves) & !is.null(waves)) stop("waves must be either an integer vector or NULL") 
-    #!!! consider: check for int instead of numeric
+  if(!is.integer(waves) & !is.null(waves)) stop("waves must be either an integer vector or NULL") 
   
   dat$id <- id
   dat$weights <- weights
@@ -445,6 +430,9 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     
 #!!!!!!!!!!!!!!!!!!replace or leave out?    results$dropped <- dropid
     results$dropped <- "Put something here?"
+     #NOTE: original geem sometimes included this slot, sometimes not, as it was
+     #set to NULL if not used and hence (unintentionally?) dropped. 
+     #Backwards compatibility may be in conflict with keeping a strict output structure. 
     
     results$terms <- terms(formula)
     results$y <- Y
