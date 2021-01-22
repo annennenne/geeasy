@@ -1,3 +1,9 @@
+updateAlpha <- function()  {
+  #wrapper for updating alpha. Corr <= 1 check should be performed here
+  #should handle dispersion according to cor.match
+  #should output R.alpha.inv (and possibly diagnostic info)
+}
+
 
 ### Update the alpha (possibly) vector for the USERDEFINED correlation matrix.
 updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid,
