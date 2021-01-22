@@ -15,22 +15,11 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
     InvLinkDeriv <- famret$InvLinkDeriv
   }
   
-  
-  
-  ## [document]
-  p <- dim(x)[2] #number of covariates(???)
-  nn <- dim(x)[1] #number of observations in total (???)
-  includedvec <- weights > 0 
-  
-  
-  ## if no offset is given, then set to zero
-  if(is.null(offset)) offset <- rep(0, nn)
-  
-  
+  # Number of covariates (p) and observations in total
+  p <- dim(x)[2] 
+  nn <- dim(x)[1] 
   
   ## Basic check to see if link and variance functions make any kind of sense
-  #*# linkOfMean <- LinkFun(mean(y[includedvec])) - mean(offset) 
-  #*# #Y constructed via dat which has had !includedvec dropped?
   meanY <- mean(y)
   linkOfMean <- LinkFun(meanY) - mean(offset)
   if(!is.finite(linkOfMean)) {
@@ -87,7 +76,14 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
   #number of total obs in each cluster
   len <- as.numeric(summary(split(y, id, drop = TRUE))[,1]) 
   
-  #!!! Document 
+  
+  
+  # includedvec is logical vector with T if weight > 0, F otherwise
+  includedvec <- weights > 0 
+  
+  
+  # W is a diagonal matrix of weights, sqrtW = sqrt(W)
+  # included is diagonal matrix with 1 if weight > 0, 0 otherwise
   W <- Diagonal(x = weights)
   sqrtW <- sqrt(W)
   included <- Diagonal(x = as.numeric(includedvec)) 
@@ -150,7 +146,6 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
     BlockDiag <- tmp$BDiag
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
-     #%*% R.alpha.inv <- NULL #not used below
     
   } else if(corstr$name == "unstructured"){
     
@@ -199,16 +194,15 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
 
   
   
-  done <- FALSE #renamed "stop" argument (would overwrite builtin function)
+  done <- FALSE 
   converged <- FALSE
   count <- 1
   beta.old <- beta
   unstable <- FALSE
   phi.old <- phi
   
-  # browser()
   
-  # Main fisher scoring loop
+  # Fisher scoring loop
   while(!done && count <= maxit) {
     
     
@@ -336,9 +330,8 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
   if(sandwich){
     sandvar.list <- getSandwich(y, x, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, 
                                 beta.list$hess, StdErr, dInvLinkdEta, BlockDiag, W, included)
-  }else{
-    sandvar.list <- list()
-    sandvar.list$sandvar <- "no sandwich"
+  } else {
+    sandvar.list <- list(sandvar = "no sandwich")
   }
   
   alpha <- alpha.new
@@ -356,7 +349,7 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
               niter = count - 1,
               converged = converged,
               unstable = unstable,
-              naiv.var = solve(beta.list$hess), ## call model-based
+              naiv.var = solve(beta.list$hess), 
               var = sandvar.list$sandvar,
               corr = corstr$name, 
               clusz = len,

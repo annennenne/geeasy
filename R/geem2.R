@@ -36,9 +36,6 @@
 #'  
 #' @param weights A vector of weights for each observation.  If an observation
 #'   has weight 0, it is excluded from the calculations of any parameters.  
-#'   Observations with a \code{NA} anywhere (even in variables not included
-#'    in the model) will be assigned a weight of 0.  Note that these weights 
-#'    are now the same as PROC GEE weights and not PROC GENMOD.
 #'    
 #' @param corr.mat The correlation matrix for \code{"fixed"}.  Matrix should
 #'   be symmetric with dimensions >= the maximum cluster size.  If the correlation 
@@ -107,6 +104,11 @@
 #'   and so are decided by the choice of the link function.
 #' 
 #' @return An object of class \code{geem} representing the fit.
+#' 
+#'   Observations with a \code{NA} in the variables specified in the \code{formula}
+#'   argument, \code{weights} (if used) or \code{waves} (if used) will be assigned 
+#'   a weight of 0.  Note that these weights  are now the same as PROC GEE weights 
+#'   and not PROC GENMOD. CHECK IF THIS IS STILL TRUE OR SHOULD BE CHANGED. 
 #' 
 #' @author Lee McDaniel and Nick Henderson
 #' 
@@ -190,11 +192,12 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   call <- match.call()
   
   ### First, get all the relevant elements from the arguments
-  dat <- model.frame(formula, data, na.action=na.pass)
+  dat <- model.frame(formula, data, na.action = na.pass)
   nn <- dim(dat)[1]
   
   #Make id / weight / waves argument so that they can match character
   #strings OR names provided in enclosing environment/data
+  #??? doesn't work with character strings??? 
   if(typeof(data) != "environment") {
     if(length(call$id) == 1){
       subj.col <- which(colnames(data) == call$id)
@@ -228,46 +231,47 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     }
   }
   
+  # Initialize weights if not supplied by user
   if(is.null(weights)) weights <- rep(1, nn)
   
+  
+  # Intialize offset if not supplied by user
+  ## if no offset is given, then set to zero
+  if(is.null(offset)) offset <- rep(0, nn)
+  
+  # Check waves argument
   if(!is.integer(waves) & !is.null(waves)) stop("waves must be either an integer vector or NULL") 
   
+  # Organize all dataset in dat
   dat$id <- id
   dat$weights <- weights
-  dat$waves <- waves
+  dat$waves <- waves #!!! this may be NULL => not controlled what slots are available in dat
 
   
-  #SORT THE DATA ACCORDING TO WAVES
-  if(!is.null(waves)){
-    dat <- dat[order(id, waves),]
-  }else{
-    dat <- dat[order(id),]
+  # Sort data. If waves are available, sort accord to id and waves, otherwise 
+  # sort only according to id
+  if (!is.null(waves)) {
+    dat <- dat[order(id, waves), ]
+  } else {
+    dat <- dat[order(id), ]
   }
   
-  
-  # W is diagonal matrix of weights, sqrtW = sqrt(W)
-  # included is diagonal matrix with 1 if weight > 0, 0 otherwise
-  # includedvec is logical vector with T if weight > 0, F otherwise
-  # Note that we need to assign weight 0 to rows with NAs
-  # in order to preserve the correlation structure
+  # Find missing information in variables used for the linear predictor and response
+  # note: na.inds contains information on both row and columns of NAs - both are needed below. 
   na.inds <- NULL
-  if(any(is.na(dat))){ #??? dat is constructed from formula + data => we only drop in NAs that we use. Fix documentation, it says otherwise!
-    na.inds <- which(is.na(dat), arr.ind=T)
-    #note: na.inds contains information on both row and columns of NAs - both are needed below. 
+  if(any(is.na(dat))){
+    na.inds <- which(is.na(dat), arr.ind = TRUE)
   }
-  
   
   # Figure out the correlation structure
   cor.vec <- c("independence", "ar1", "exchangeable", "m-dependent", "unstructured", 
                "fixed", "userdefined")
-  #*# cor.match <- charmatch(corstr, cor.vec)
   corstr <- cor.vec[charmatch(corstr, cor.vec)]
   
   #!!!to do:
-  # - add step to change corstr if settings simplify (for example "m-dependent" and Mv == 1 => "ar1")
+  # - add step to change corstr if settings simplify (for example "m-dependent" and Mv == 1 => "ar1"?)
   
-  
-  
+  #!!! to do:
   #!!! check what happens if length(cor.str) > 1 and check what happens if there is no match (old code below
   # NOT replaced yet):
   #*#  if(is.na(cor.match)){stop("Unsupported correlation structure")} #!!check if this still works
@@ -278,6 +282,9 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #*#   stop("Unsupported Correlation Structure")
   #*#   }
   
+  
+  # Check for and handle gaps in waves by inserting dummy rows in the data
+  # so that waves become equidistant
   if(!is.null(dat$waves)){
     wavespl <- split(dat$waves, dat$id)
     idspl <- split(dat$id, dat$id)
@@ -296,7 +303,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     #then we'll add some dummy rows
     if(!(corstr %in% c("independence", "exchangeable")) & 
        (sum(incomp) > 0) & !nodummy){
-      #*# if( !is.element(cor.match,c(1,3)) & (sum(incomp) > 0) & !nodummy){
       dat <- dummyrows(formula, dat, incomp, maxwave, wavespl, idspl)
       id <- dat$id
       waves <- dat$waves
@@ -304,15 +310,14 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     }
   }
   
-  
+  # Note that we need to assign weight 0 to rows with NAs
+  # in order to preserve the correlation structure
   if(!is.null(na.inds)){
     weights[unique(na.inds[,1])] <- 0 #!!! consider: should this be done in "weights" within dat instead?
     
-    
     ##???? It looks like single imputation is swept in below - but maybe it's just filling in a placeholder
     ## value that won't be used? But why? those obs should be dropped anyway below?
-    
-    #*# for(i in unique(na.inds)[,2]){ #parenthesis mistake? gets same var multiple times
+
     for(i in unique(na.inds[,2])){
       if(is.factor(dat[,i])){
         dat[na.inds[,1], i] <- levels(dat[,i])[1]
@@ -323,8 +328,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   
   
+  #
   includedvec <- weights > 0
-  
   
   inclsplit <- split(includedvec, id)
   
@@ -333,10 +338,11 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #Find indexes to be dropped
   dropind <- NULL 
   
+  # Identify ids that are missing for all observations, i.e. whole cluster must be 
+  # missing. If so, omit it, otherwise ignore. 
   if(corstr %in% c("independence", "exchangeable")) {
     dropind <- which(weights == 0)
   } else {
-    #*# dropid <- NULL
     allobs <- TRUE
     if(any(!includedvec)){
       allobs <- FALSE
@@ -350,18 +356,15 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
         #Drop observation only if all obs from that individual (ID) are missing
         if(all(!inclsplit[[i]])){ 
           dodropid[i] <- TRUE
-          #*# dropid <- c(dropid, unique(id)[i]) #!!!! DOESN'T WORK WHEN ID IS FACTOR - THEN IT IS COERCED TO NUM AND NOT MATCHED BELOW.
         }
       }
-      #*#  if(length(dropid) > 0) {
-      #*#    dropind <- which(is.element(id, dropid))
-      #*#  }
       if (sum(dodropid) > 0) {
           dropind <- which(id %in% uniqueid[dodropid])  
       }
     }
   }
-  if(length(dropind) > 0) { #drop indexes just found
+  #drop indexes just found
+  if(length(dropind) > 0) {
     dat <- dat[-dropind,]
     includedvec <- includedvec[-dropind]
     weights <- weights[-dropind]
@@ -369,13 +372,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     id <- id[-dropind]
   }
 
-  #*#  nn <- dim(dat)[1] #note: now computed in geem.fit
- 
-  #find ud af hvor k er?
-  
- #*# modterms <- terms(formula)
-  
-  X <- model.matrix(formula,dat)
+    
+  X <- model.matrix(formula, dat)
   Y <- model.response(dat)
   offset <- model.offset(dat)
   
@@ -385,39 +383,32 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   if (corstr$name %in% c("fixed", "userdefined")) corstr$extra <- corr.mat
   
   
-  ######################
   
-  #call geem.fit here!
-  #Args used:
-  # - x = X
-  # offset = offset
-  # weights = weights
-  # control = control
-  # id = id
-  # family = family
-  # corstr = corstr 
-  # allobs = allobs #!!! consider: can this be determined with the above information?
+  ##########################################################################################
+  # Do actual fitting      #################################################################
+  ##########################################################################################
   
+  #!!! check: can we avoid passing allobs argument and instead recompute it 
+  # in geem.fit?
   
-  #####################
- 
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
                   control = control, id = id, family = family,
                   corstr = corstr, allobs = allobs, sandwich = sandwich)
   
+
+  
+  ##########################################################################################
+  # Pack and return output #################################################################
+  ##########################################################################################
   
   if (!results$converged) {
     warning("Did not converge")
   }
   if (results$unstable) {
     warning("Number of subjects with number of observations >= Mv is very small, some correlations are estimated with very low sample size.")
-  }
+  } #!!! consider restructuring so that this slot is used more generally for error-messages,
+    # which would allow for it to be reused by other correlation structures
   
-  # }
-  
-  ##########################################################################################
-  # Pack and return output #################################################################
-  ##########################################################################################
   
   if (return == "geem") {
     # Create object of class geem with information about the fit
@@ -447,8 +438,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     results <-results[old_geem_out_order]
     
     class(results) <- "geem"
-    
-    #browser()
     
     return(results)
   } 
