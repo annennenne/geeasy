@@ -23,6 +23,8 @@ mm_dev$weights
 
 
 res[i, ]
+
+
 #############
 #Look at combos with error for dev but not original
 res[res$error_new & !res$error_original,] #none! 

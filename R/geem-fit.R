@@ -69,18 +69,16 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
   uniqueid <- unique(id)
   K <- length(uniqueid)
   
+  
+  # includedvec is logical vector with T if weight > 0, F otherwise
+  includedvec <- weights > 0 
+  
   #number of complete (non-NA) obs in each cluster
   includedlen <- as.numeric(summary(split(y, ifelse(!includedvec, NA, id), 
                                           drop = TRUE))[,1])  
   
   #number of total obs in each cluster
   len <- as.numeric(summary(split(y, id, drop = TRUE))[,1]) 
-  
-  
-  
-  # includedvec is logical vector with T if weight > 0, F otherwise
-  includedvec <- weights > 0 
-  
   
   # W is a diagonal matrix of weights, sqrtW = sqrt(W)
   # included is diagonal matrix with 1 if weight > 0, 0 otherwise

@@ -232,15 +232,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   
   # Initialize weights if not supplied by user
-  if(is.null(weights)) weights <- rep(1, nn)
-  
-  
-  # Intialize offset if not supplied by user
-  ## if no offset is given, then set to zero
-  if(is.null(offset)) offset <- rep(0, nn)
+  if (is.null(weights)) weights <- rep(1, nn)
   
   # Check waves argument
-  if(!is.integer(waves) & !is.null(waves)) stop("waves must be either an integer vector or NULL") 
+  if (!is.null(waves) && !identical(round(waves, 0), waves)) stop("waves must be either an integer vector or NULL") 
   
   # Organize all dataset in dat
   dat$id <- id
@@ -376,6 +371,11 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   X <- model.matrix(formula, dat)
   Y <- model.response(dat)
   offset <- model.offset(dat)
+  
+  
+  # Intialize offset if not supplied by user
+  ## if no offset is given, then set to zero
+  if (is.null(offset)) offset <- rep(0, nrow(X))
   
   #add extra info to corstr if necessary
   corstr <- list(name = corstr, extra = NULL)

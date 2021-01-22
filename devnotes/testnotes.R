@@ -120,4 +120,13 @@ for (i in 1:nrow(res)) {
 }
 
 
-View(res)
+if (FALSE) {
+devtools::load_all()
+mm <- geeM2::geem2(thisFormula, data = resp, 
+                   id = with(resp, interaction(center, id)),
+                   family = "binomial", corstr = thisCorStr, Mv = thisMv,
+                   corr.mat = thisCorr, waves = theseWaves,
+                   weights = theseWeights)
+debugonce(geem2)
+}
+
