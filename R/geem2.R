@@ -182,7 +182,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                 # init.alpha=NULL, init.phi = 1, 
                  scale.fix = FALSE, nodummy = FALSE,
                  sandwich = TRUE, #useP = TRUE, #maxit = 20, #tol = 0.00001,
-                 return = "geem",
+                 output = "geem",
                  control = geem.control()){
   
   ########################################################################
@@ -410,7 +410,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     # which would allow for it to be reused by other correlation structures
   
   
-  if (return == "geem") {
+  if (output == "geem") {
     # Create object of class geem with information about the fit
     dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
     X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
@@ -429,6 +429,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     results$y <- Y
     results$formula <- formula
     
+    
+    #Delete terms not used for geem-output
+    results$resid <- NULL
+    
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
                             "niter", "converged", "naiv.var", "var",
@@ -441,6 +445,42 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     
     return(results)
   } 
+  
+  if (output == "geeglm") {
+    coefs <- results$beta
+    names(coefs) <- colnames(X)
+    
+    
+    out <- list(coefficients = coefs,
+                    residuals = results$resid,
+                    fitted.values = NA,
+                    effects = NA,
+                    rank = NA,
+                    qr = NA,
+                    family = NA,
+                    linear.predictors = NA,
+                    weights = NA,
+                    prior.weights = NA,
+                    df.residual = NA,
+                    y = NA,
+                    model = NA,
+                    call = NA,
+                    formula = NA,
+                    terms = NA,
+                    data = NA,
+                    offset = NA,
+                    control = NA,
+                    method = NA,
+                    constrasts = NA,
+                    xlevels = NA,
+                    geese = NA,
+                    modelInfo = NA,
+                    id = NA,
+                    corstr = NA,
+                    cor.link = NA,
+                    std.err = NA)
+    return(out)
+  }
 }
 
 

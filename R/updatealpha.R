@@ -9,8 +9,6 @@ updateAlpha <- function()  {
 updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid,
                             p, BlockDiag, row.vec, col.vec, corr.list,
                             included, includedlen, allobs,sqrtW, useP){
-  Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
-
   ml <- max(len)
 
   BlockDiag <- Resid %*% BlockDiag %*% Resid
@@ -73,8 +71,6 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len,
                             StdErr, Resid, p, BlockDiag, m,
                             included, includedlen, allobs, sqrtW, useP){
 
-  Resid <- StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
-
   BlockDiag <- Resid %*% BlockDiag %*% Resid
   alpha.new <- vector("numeric", m)
   for(i in 1:m){
@@ -103,7 +99,7 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len,
 }
 
 ### Calculate the parameter for the AR-1 correlation, also used for 1-DEPENDENT
-updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, p,
+updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p,
                           included, includedlen, includedvec, allobs,
                           sqrtW, BlockDiag, useP){
   #K <- length(len)
@@ -155,10 +151,6 @@ updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid,
                                p, BlockDiag, included, includedlen,
                                allobs, sqrtW, useP){
 
-  Resid <- StdErr %*% included %*% sqrtW %*%Diagonal(x = YY - mu)
-  
-  
-  
   ml <- max(len)
 
   BlockDiag <- Resid %*% BlockDiag %*% Resid
@@ -189,4 +181,6 @@ updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid,
 
   return(alpha.new)
 }
+
+
 

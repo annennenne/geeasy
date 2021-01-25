@@ -215,13 +215,17 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
                        sqrtW, useP)
     }
     
+    #Compute residuals
+    Resid <- residuals_geem(StdErr = StdErr, included = included, 
+                            sqrtW = sqrtW, YY = y, mu = mu)
+    
+    
     ## Calculate alpha, R(alpha)^(-1) / phi
     if(corstr$name == "ar1") { 
       
-      alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len,
-                                 StdErr, p, included, includedlen,
-                                 includedvec, allobs, sqrtW,
-                                 BlockDiag, useP)
+      alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
+                                 included, includedlen, includedvec, allobs,
+                                 sqrtW, BlockDiag, useP)
       R.alpha.inv <- getAlphaInvAR(alpha.new, a1, a2, a3, a4, row.vec, col.vec)/phi
       
     } else if(corstr$name == "exchangeable") {
@@ -234,9 +238,8 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
     } else if(corstr$name == "m-dependent") {
       
       if(Mv==1){ #???? change - this should be done way earlier if Mv = 1 means AR1 (but is that right???)
-        alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len,
-                                   StdErr, p, included, includedlen,
-                                   includedvec, allobs,
+        alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
+                                   included, includedlen, includedvec, allobs,
                                    sqrtW, BlockDiag, useP)
       }else{
         alpha.new <- updateAlphaMDEP(y, mu, VarFun, phi, id, len,
@@ -341,6 +344,11 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
   }
   
   
+  #Extra computations needed for geepack output 
+  pearson_resid <- (y - mu) * diag(sqrtW)/VarFun(mu)
+  
+  
+  # Collect and return everything
   out <- list(alpha = alpha,
               beta = as.vector(beta),
               phi = phi,
@@ -355,7 +363,16 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
               offset = offset,
               eta = eta,
               weights = weights,
-              biggest.R.alpha = biggest.R.alpha/phi)
+              biggest.R.alpha = biggest.R.alpha/phi,
+              resid = pearson_resid)
   
   out
+}
+
+
+
+
+## Compute residuals
+residuals_geem <- function(StdErr, included, sqrtW, YY, mu) {
+  StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
 }
