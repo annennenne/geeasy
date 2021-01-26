@@ -1,4 +1,5 @@
 # Compare geem2 with geem 
+devtools::load_all()
 
 # Scenario 1: Respiratory data
 
@@ -122,6 +123,20 @@ for (i in 1:nrow(res)) {
 
 if (FALSE) {
 devtools::load_all()
+i <- 1
+
+if (res$waves[i] == "none") {
+  theseWaves <- NULL 
+} else {
+  theseWaves <- resp[, res$waves[i]]
+}
+
+theseWeights <- resp[, res$weights[i]]
+thisTreat <- res$treat[i]
+thisCorStr <- res$corstr[i]
+
+thisFormula <- update(useFormula, as.formula(paste(". ~ . + ", thisTreat)))
+
 mm <- geeM2::geem2(thisFormula, data = resp, 
                    id = with(resp, interaction(center, id)),
                    family = "binomial", corstr = thisCorStr, Mv = thisMv,
@@ -130,3 +145,65 @@ mm <- geeM2::geem2(thisFormula, data = resp,
 debugonce(geem2)
 }
 
+
+
+
+
+if (FALSE) {
+
+  debugonce(geem2)
+mm_gm2 <- geem2(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1, 
+                 data = resp, 
+                 id = with(resp, interaction(center, id)),
+                     family = "binomial", corstr = "exchangeable",
+                output = "geeglm")#,
+                   #  waves = theseWaves,
+#                     weights = weights1)
+
+mm_gp <- geeglm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1,
+                data = resp[, #complete.cases(resp$treatwmiss1), 
+                            c("outcome", "baseline","sex", "age", "treat", #wmiss1", 
+                              "id", "center")],#, "weights1")], 
+              id = interaction(center, id),
+              family = "binomial", corstr = "exchangeable")#, 
+          #    waves = theseWaves[complete.cases(resp)],
+             # weights = weights1)
+
+head(data.frame(mm_gp$weights, mm_gp$prior.weights))
+
+nrow(resp[complete.cases(resp) * theseWeights != 0,]) - mm_gp$rank
+
+mm_gp$df.residual
+
+complete.cases(resp) * theseWeights != 0
+
+
+mm_glm <- glm(thisFormula, data = resp, family = "binomial", weights = theseWeights)
+
+
+mm_glm
+
+rr <- resp[,  c("outcome", "treat", "id", "center")]
+neworder <- order(interaction(rr$id))
+
+
+
+oldorder <- c(1:444)[neworder]
+rr_new <- rr[neworder,]
+
+head(rr_new, 20)
+head(rr_new[order(neworder),], 20)
+
+
+head(rr_new[1:44,])
+neworder
+
+
+td <- data.frame(originalid = 1:20, id = rep(letters[1:4], 5))
+td
+
+tdord <- order(td$id)
+tdord
+td2 <- td[tdord,]
+tdord[td$originalid, ]
+}

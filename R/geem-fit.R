@@ -1,18 +1,17 @@
 geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
                      allobs, sandwich) {
   
-  # handle family argument
-  famret <- getfam(family)
-  if(inherits(famret, "family")) {
-    LinkFun <- famret$linkfun
-    InvLink <- famret$linkinv
-    VarFun <- famret$variance
-    InvLinkDeriv <- famret$mu.eta
+  # Unpack family functions
+  if(inherits(family, "family")) {
+    LinkFun <- family$linkfun
+    InvLink <- family$linkinv
+    VarFun <- family$variance
+    InvLinkDeriv <- family$mu.eta
   } else {
-    LinkFun <- famret$LinkFun
-    VarFun <- famret$VarFun
-    InvLink <- famret$InvLink
-    InvLinkDeriv <- famret$InvLinkDeriv
+    LinkFun <- family$LinkFun
+    VarFun <- family$VarFun
+    InvLink <- family$InvLink
+    InvLinkDeriv <- family$InvLinkDeriv
   }
   
   # Number of covariates (p) and observations in total
@@ -346,6 +345,7 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
   
   #Extra computations needed for geepack output 
   pearson_resid <- (y - mu) * diag(sqrtW)/VarFun(mu)
+  fitted.values <- InvLink(eta)
   
   
   # Collect and return everything
@@ -359,12 +359,13 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
               var = sandvar.list$sandvar,
               corr = corstr$name, 
               clusz = len,
-              FunList = famret,
+              FunList = family,
               offset = offset,
               eta = eta,
               weights = weights,
               biggest.R.alpha = biggest.R.alpha/phi,
-              resid = pearson_resid)
+              resid = pearson_resid,
+              fitted.values = fitted.values)
   
   out
 }

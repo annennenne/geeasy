@@ -191,6 +191,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   
   call <- match.call()
   
+  
+  
   ### First, get all the relevant elements from the arguments
   dat <- model.frame(formula, data, na.action = na.pass)
   nn <- dim(dat)[1]
@@ -237,6 +239,11 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Check waves argument
   if (!is.null(waves) && !identical(round(waves, 0), waves)) stop("waves must be either an integer vector or NULL") 
   
+  
+  # Store objects for output
+  prior.weights <- weights
+  
+  
   # Organize all dataset in dat
   dat$id <- id
   dat$weights <- weights
@@ -246,10 +253,14 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Sort data. If waves are available, sort accord to id and waves, otherwise 
   # sort only according to id
   if (!is.null(waves)) {
-    dat <- dat[order(id, waves), ]
+    neworder <- order(id, waves)
   } else {
-    dat <- dat[order(id), ]
+    neworder <- order(id)
   }
+  dat <- dat[neworder, ] 
+  
+  # Inverse of neworder that will help order output back to original order
+  oldorder <- order(neworder) 
   
   # Find missing information in variables used for the linear predictor and response
   # note: na.inds contains information on both row and columns of NAs - both are needed below. 
@@ -313,14 +324,15 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     ##???? It looks like single imputation is swept in below - but maybe it's just filling in a placeholder
     ## value that won't be used? But why? those obs should be dropped anyway below?
 
-    for(i in unique(na.inds[,2])){
-      if(is.factor(dat[,i])){
-        dat[na.inds[,1], i] <- levels(dat[,i])[1]
-      }else{
-        dat[na.inds[,1], i] <- median(dat[,i], na.rm=T)
-      }
+    #*#    for(i in unique(na.inds[,2])){
+    #*#      if(is.factor(dat[,i])){
+    #*#        dat[na.inds[,1], i] <- levels(dat[,i])[1]
+    #*#      }else{
+    #*#        dat[na.inds[,1], i] <- median(dat[,i], na.rm=T)
+    #*#      }
+    #*#    }
+    #*#  
     }
-  }
   
   
   #
@@ -382,8 +394,9 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   if (corstr$name == "m-dependent") corstr$extra <- Mv
   if (corstr$name %in% c("fixed", "userdefined")) corstr$extra <- corr.mat
   
-  
-  
+  # handle family argument
+  famret <- getfam(family)
+
   ##########################################################################################
   # Do actual fitting      #################################################################
   ##########################################################################################
@@ -392,7 +405,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # in geem.fit?
   
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
-                  control = control, id = id, family = family,
+                  control = control, id = id, family = famret,
                   corstr = corstr, allobs = allobs, sandwich = sandwich)
   
 
@@ -409,11 +422,12 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   } #!!! consider restructuring so that this slot is used more generally for error-messages,
     # which would allow for it to be reused by other correlation structures
   
+  dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
+  X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
   
   if (output == "geem") {
     # Create object of class geem with information about the fit
-    dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
-    X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
+   
  
     results$coefnames <- colnames(X)
     results$call <- call
@@ -432,6 +446,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     
     #Delete terms not used for geem-output
     results$resid <- NULL
+    results$fitted.values <- NULL
     
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
@@ -450,19 +465,21 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     coefs <- results$beta
     names(coefs) <- colnames(X)
     
+    # Rank of model matrix
+    model_rank <- Matrix::rankMatrix(X)
     
     out <- list(coefficients = coefs,
-                    residuals = results$resid,
-                    fitted.values = NA,
-                    effects = NA,
-                    rank = NA,
-                    qr = NA,
-                    family = NA,
-                    linear.predictors = NA,
-                    weights = NA,
-                    prior.weights = NA,
-                    df.residual = NA,
-                    y = NA,
+                    residuals = results$resid[oldorder],
+                    fitted.values = results$fitted.values[oldorder],
+                    effects = NA, #not required for glm objects, ever used? note: documented in white book
+                    rank = model_rank, #rank of model matrix
+                    qr = NA, #not required for glm objects, ever used?
+                    family = famret,
+                    linear.predictors = results$eta[oldorder],
+                    weights = results$weights[oldorder],
+                    prior.weights = prior.weights,
+                    df.residual = sum(results$weights != 0) - model_rank,
+                    y = Y[oldorder],
                     model = NA,
                     call = NA,
                     formula = NA,
