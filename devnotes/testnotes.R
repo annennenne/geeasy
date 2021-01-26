@@ -169,6 +169,16 @@ mm_gp <- geeglm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmi
           #    waves = theseWaves[complete.cases(resp)],
              # weights = weights1)
 
+mm_gp$model
+mm_gp$contrasts
+mm_gp$xlevels
+
+nstop <- 0
+for (i in 1:nstop) {
+  print(i)
+}
+
+
 head(data.frame(mm_gp$weights, mm_gp$prior.weights))
 
 nrow(resp[complete.cases(resp) * theseWeights != 0,]) - mm_gp$rank
@@ -178,10 +188,13 @@ mm_gp$df.residual
 complete.cases(resp) * theseWeights != 0
 
 
-mm_glm <- glm(thisFormula, data = resp, family = "binomial", weights = theseWeights)
+mm_glm <- glm(outcome ~ baseline + center + sex + age + I(age^2) + treat, 
+              data = resp, family = "binomial")
+
+head(mm_glm$data)
 
 
-mm_glm
+head(mm_glm$model)
 
 rr <- resp[,  c("outcome", "treat", "id", "center")]
 neworder <- order(interaction(rr$id))

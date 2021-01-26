@@ -189,7 +189,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #Check and prep input arguments ########################################
   ########################################################################
   
-  call <- match.call()
+  thiscall <- match.call()
   
   
   
@@ -201,34 +201,34 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #strings OR names provided in enclosing environment/data
   #??? doesn't work with character strings??? 
   if(typeof(data) != "environment") {
-    if(length(call$id) == 1){
-      subj.col <- which(colnames(data) == call$id)
+    if(length(thiscall$id) == 1){
+      subj.col <- which(colnames(data) == thiscall$id)
       if(length(subj.col) > 0){
         id <- data[,subj.col]
       } else {
-        id <- eval(call$id, envir=parent.frame())
+        id <- eval(thiscall$id, envir=parent.frame())
       }
-    } else if(is.null(call$id)) {
+    } else if(is.null(thiscall$id)) {
       id <- 1:nn
     }
     
-    if(length(call$weights) == 1) {
-      weights.col <- which(colnames(data) == call$weights)
+    if(length(thiscall$weights) == 1) {
+      weights.col <- which(colnames(data) == thiscall$weights)
       if(length(weights.col) > 0) {
         weights <- data[,weights.col]
       } else {
-        weights <- eval(call$weights, envir=parent.frame())
+        weights <- eval(thiscall$weights, envir=parent.frame())
       }
     } 
     
-    if(length(call$waves) == 1) {
-      waves.col <- which(colnames(data) == call$waves)
+    if(length(thiscall$waves) == 1) {
+      waves.col <- which(colnames(data) == thiscall$waves)
       if(length(waves.col) > 0) {
         waves <- data[,waves.col]
       } else {
-        waves <- eval(call$waves, envir=parent.frame())
+        waves <- eval(thiscall$waves, envir=parent.frame())
       }
-    } else if(is.null(call$waves)) {
+    } else if(is.null(thiscall$waves)) {
       waves <- NULL
     }
   }
@@ -430,7 +430,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
    
  
     results$coefnames <- colnames(X)
-    results$call <- call
+    results$call <- thiscall
     results$X <- X
     
 #!!!!!!!!!!!!!!!!!!replace or leave out?    results$dropped <- dropid
@@ -462,6 +462,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   } 
   
   if (output == "geeglm") {
+   # browser()
     coefs <- results$beta
     names(coefs) <- colnames(X)
     
@@ -480,22 +481,22 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     prior.weights = prior.weights,
                     df.residual = sum(results$weights != 0) - model_rank,
                     y = Y[oldorder],
-                    model = NA,
-                    call = NA,
-                    formula = NA,
-                    terms = NA,
-                    data = NA,
-                    offset = NA,
-                    control = NA,
-                    method = NA,
-                    constrasts = NA,
-                    xlevels = NA,
-                    geese = NA,
-                    modelInfo = NA,
-                    id = NA,
-                    corstr = NA,
-                    cor.link = NA,
-                    std.err = NA)
+                    model = dat,
+                    call = thiscall,
+                    formula = formula,
+                    terms =  terms(formula),
+                    data = data,
+                    offset = results$offset[oldorder],
+                    control = control,
+                    method = "geem.fit",
+                    constrasts = attr(X, "contrasts"),
+                    xlevels = get_xlevels(dat),
+                    geese = NA, #!!! what to do here? this is where all the cor info is stored. but we dont want it to follow geese structure exactly.
+                    modelInfo = NA, #geese info
+                    id = id,
+                    corstr = corstr$name,
+                    cor.link = "identity",
+                    std.err = ifelse(sandwich, "sandwich", "????"))
     return(out)
   }
 }
@@ -568,6 +569,23 @@ getSandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
   sandvar <- t(solve(t(hessMat), sandvar))
   
   return(list(sandvar = sandvar, numsand = numsand))
+}
+
+
+# Get levels for all factors from model.frame type object
+get_xlevels <- function(modelframe) {
+  classes <- attr(terms(modelframe), "dataClasses")
+  factors <- names(classes[classes == "factor"])
+  nfactors <- length(factors)
+  if (nfactors > 0) { 
+    xlevels <- as.list(1:nfactors) 
+    for (i in 1:nfactors) {
+      xlevels[[i]] <- levels(modelframe[, factors[i]])
+    }
+    names(xlevels) <- factors
+    return(xlevels)
+  }
+  NULL
 }
 
 
