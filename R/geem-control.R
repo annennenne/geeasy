@@ -15,7 +15,11 @@ geem.control <- function(#init.alpha = NULL,
        tol = tol,
        maxit = maxit,
        scale.fix = scale.fix,
-       useP = useP)
+       useP = useP,
+       jack = 0, #for geese methods
+       j1s = 0, #for geese methods
+       fij = 0 #for geese methods
+       )
 }
 
 

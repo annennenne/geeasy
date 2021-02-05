@@ -396,6 +396,16 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   
   # handle family argument
   famret <- getfam(family)
+  
+  #rename function names for standardized output family object.
+  # note: not sure why original geeM had different function names
+  # for user-supplied families. May be possible to drop this
+  # convention altogether
+  #browser()
+  if (!inherits(famret, "family")) {
+    names(famret)[c("LinkFun", "VarFun", "InvLink", "InvLinkDeriv")] <-
+      c("linkfun", "variance", "linkinv", "mu.eta")
+  }
 
   ##########################################################################################
   # Do actual fitting      #################################################################
@@ -414,14 +424,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Pack and return output #################################################################
   ##########################################################################################
   
-  if (!results$converged) {
-    warning("Did not converge")
-  }
-  if (results$unstable) {
-    warning("Number of subjects with number of observations >= Mv is very small, some correlations are estimated with very low sample size.")
-  } #!!! consider restructuring so that this slot is used more generally for error-messages,
-    # which would allow for it to be reused by other correlation structures
-  
+   
   dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
   X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
   
@@ -462,19 +465,64 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   } 
   
   if (output == "geeglm") {
-   # browser()
+#    browser()
     coefs <- results$beta
     names(coefs) <- colnames(X)
     
     # Rank of model matrix
-    model_rank <- Matrix::rankMatrix(X)
+    model_rank <- Matrix::rankMatrix(na.omit(X)) #!!!!! check: ok to do na.omit here?
     
+  #construct modelinfo which is used both for geese and full geeglm object
+    modelInfo = list(mean.link  = famret$link,
+                     variance = famret$family,
+                     sca.link = "identity",
+                     cor.link = "identity",
+                     corstr = corstr$name,
+                     scale.fix = scale.fix)
+   
+  #construct geese object - necessary for geepack methods
+    
+    #construct variance object with correct dimensions but filled with zeros
+    #as these alternative variance estimation options are not yet supported
+    #note: zero matrices in this scenario is geepack standard 
+    vbeta <- as.matrix(results$var) #note: need "regular" matrix for geeglm methods to work
+    vbeta_otherse <- vbeta
+    vbeta_otherse[,] <- 0
+    vgamma_otherse <- matrix(0, nrow = length(results$phi), ncol = length(results$phi))
+    valpha_otherse <- matrix(0, nrow = length(results$alpha), ncol = length(results$alpha))
+    
+   geeseobj <- list(beta = coefs,
+                    vbeta = vbeta,
+                    vbeta.j1s = vbeta_otherse,
+                    vbeta.fij = vbeta_otherse,
+                    vbeta.ajs = vbeta_otherse,
+                    gamma = results$phi, #!!! OBS: Tjek om phi og gamma er det samme eller om der er en transformation imellem
+                    vgamma =  vgamma_otherse, #!! placeholder - check: do we compute this at all?
+                    vgamma.j1s = vgamma_otherse,
+                    vgamma.fij = vgamma_otherse,
+                    vgamma.ajs = vgamma_otherse,
+                    alpha = results$alpha, #!! placeholde - check: do we compute this at all?
+                    valpha =  valpha_otherse,
+                    valpha.j1s = valpha_otherse,
+                    valpha.fij = valpha_otherse,
+                    valpha.ajs = valpha_otherse,
+                    model = modelInfo,
+                    control = control,
+                    error = NA,  #not sure what this one does
+                    clusz = results$clusz,
+                    zsca.names = NULL, #add printed name for dispersion parameter here
+                    zcor.names = NULL, #add printed names for alpha parameters here
+                    xnames = colnames(X)
+                    )
+    class(geeseobj) <- c("geese", "list")
+
+  
     out <- list(coefficients = coefs,
                     residuals = results$resid[oldorder],
                     fitted.values = results$fitted.values[oldorder],
                     effects = NA, #not required for glm objects, ever used? note: documented in white book
                     rank = model_rank, #rank of model matrix
-                    qr = NA, #not required for glm objects, ever used?
+                    qr = qr(X), #not entirely sure if this is the correct matrix to compute QR decompostion for... 
                     family = famret,
                     linear.predictors = results$eta[oldorder],
                     weights = results$weights[oldorder],
@@ -491,12 +539,14 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     method = "geem.fit",
                     constrasts = attr(X, "contrasts"),
                     xlevels = get_xlevels(dat),
-                    geese = NA, #!!! what to do here? this is where all the cor info is stored. but we dont want it to follow geese structure exactly.
-                    modelInfo = NA, #geese info
+                    geese = geeseobj, 
+                    modelInfo = modelInfo,
                     id = id,
                     corstr = corstr$name,
                     cor.link = "identity",
                     std.err = ifelse(sandwich, "sandwich", "????"))
+    class(out) <- c("geeglm", "gee", "glm", "lm")
+    
     return(out)
   }
 }
@@ -527,7 +577,7 @@ updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, u
 updateBeta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
                        VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol, W, included){
   beta.new <- beta
-  conv=F
+  conv <- FALSE
   for(i in 1:10){
     eta <- as.vector(XX%*%beta.new) + offset
     

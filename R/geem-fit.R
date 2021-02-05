@@ -2,17 +2,10 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
                      allobs, sandwich) {
   
   # Unpack family functions
-  if(inherits(family, "family")) {
     LinkFun <- family$linkfun
     InvLink <- family$linkinv
     VarFun <- family$variance
     InvLinkDeriv <- family$mu.eta
-  } else {
-    LinkFun <- family$LinkFun
-    VarFun <- family$VarFun
-    InvLink <- family$InvLink
-    InvLinkDeriv <- family$InvLinkDeriv
-  }
   
   # Number of covariates (p) and observations in total
   p <- dim(x)[2] 
@@ -342,10 +335,19 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
     alpha <- as.vector(triu(corr.mat, 1)[which(triu(corr.mat, 1) != 0)])
   }
   
-  
+
   #Extra computations needed for geepack output 
   pearson_resid <- (y - mu) * diag(sqrtW)/VarFun(mu)
   fitted.values <- InvLink(eta)
+  
+  #Issue warnings
+  if (!converged) {
+    warning("Did not converge")
+  }
+  if (unstable) {
+    warning("Number of subjects with number of observations >= Mv is very small, some correlations are estimated with very low sample size.")
+  } #!!! consider restructuring so that this slot is used more generally for error-messages,
+  # which would allow for it to be reused by other correlation structures
   
   
   # Collect and return everything
@@ -353,8 +355,8 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
               beta = as.vector(beta),
               phi = phi,
               niter = count - 1,
-              converged = converged,
-              unstable = unstable,
+             # converged = converged,
+            #  unstable = unstable,
               naiv.var = solve(beta.list$hess), 
               var = sandvar.list$sandvar,
               corr = corstr$name, 
@@ -368,6 +370,8 @@ geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
               fitted.values = fitted.values)
   
   out
+  
+  
 }
 
 

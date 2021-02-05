@@ -151,11 +151,11 @@ debugonce(geem2)
 
 if (FALSE) {
 
-  debugonce(geem2)
+debugonce(geem2)
 mm_gm2 <- geem2(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1, 
                  data = resp, 
                  id = with(resp, interaction(center, id)),
-                     family = "binomial", corstr = "exchangeable",
+                     family = "binomial", corstr = "unstructured",
                 output = "geeglm")#,
                    #  waves = theseWaves,
 #                     weights = weights1)
@@ -165,9 +165,21 @@ mm_gp <- geeglm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmi
                             c("outcome", "baseline","sex", "age", "treat", #wmiss1", 
                               "id", "center")],#, "weights1")], 
               id = interaction(center, id),
-              family = "binomial", corstr = "exchangeable")#, 
+              family = "binomial", corstr = "unstructured")#, 
           #    waves = theseWaves[complete.cases(resp)],
              # weights = weights1)
+
+geepack:::summary.geeglm(mm_gm2)
+geepack:::summary.geeglm(mm_gp)
+debugonce(geepack:::summary.geeglm)
+debugonce(geepack:::print.geeglm)
+debugonce(geepack:::print.summary.geeglm)
+debugonce(geem.fit)
+
+predict(mm_gm2) - predict(mm_gp) < 0.01
+
+summary(mm_gp)
+
 
 mm_gp$model
 mm_gp$contrasts
