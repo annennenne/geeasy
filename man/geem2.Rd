@@ -17,7 +17,7 @@ geem2(
   scale.fix = FALSE,
   nodummy = FALSE,
   sandwich = TRUE,
-  return = "geem",
+  output = "geem",
   control = geem.control()
 )
 }
@@ -53,10 +53,7 @@ specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.}
 \item{Mv}{For \code{"m-dependent"}, the value for \code{m}.}
 
 \item{weights}{A vector of weights for each observation.  If an observation
-has weight 0, it is excluded from the calculations of any parameters.  
-Observations with a \code{NA} anywhere (even in variables not included
- in the model) will be assigned a weight of 0.  Note that these weights 
- are now the same as PROC GEE weights and not PROC GENMOD.}
+has weight 0, it is excluded from the calculations of any parameters.}
 
 \item{corr.mat}{The correlation matrix for \code{"fixed"}.  Matrix should
 be symmetric with dimensions >= the maximum cluster size.  If the correlation 
@@ -94,6 +91,11 @@ correlations greater than 1.}
 }
 \value{
 An object of class \code{geem} representing the fit.
+
+  Observations with a \code{NA} in the variables specified in the \code{formula}
+  argument, \code{weights} (if used) or \code{waves} (if used) will be assigned 
+  a weight of 0.  Note that these weights  are now the same as PROC GEE weights 
+  and not PROC GENMOD. CHECK IF THIS IS STILL TRUE OR SHOULD BE CHANGED.
 }
 \description{
 Calculate coefficients and nuisance parameters using generalized 
@@ -197,7 +199,7 @@ if(require(geepack)){
 \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
 }
 \author{
-Lee McDaniel and Nick Henderson
+Anne Helby Petersen, Lee McDaniel & Nick Henderson
 }
 \keyword{models}
 \keyword{robust}

@@ -1,4 +1,4 @@
-geem.fit <- function(x, y, id, offset, family, weights, waves, control, corstr,
+geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
                      allobs, sandwich) {
   
   # Unpack family functions

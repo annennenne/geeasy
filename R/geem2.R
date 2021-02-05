@@ -183,7 +183,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                  scale.fix = FALSE, nodummy = FALSE,
                  sandwich = TRUE, #useP = TRUE, #maxit = 20, #tol = 0.00001,
                  output = "geem",
-                 control = geem.control()){
+                 control = geem.control(), testARG){
   
   ########################################################################
   #Check and prep input arguments ########################################
@@ -414,6 +414,13 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #!!! check: can we avoid passing allobs argument and instead recompute it 
   # in geem.fit?
   
+  #########3
+  #DELETETHIS!!!!!!!!!!
+  if (!is.null(testARG))  X[weights == 0, "x"] <- testARG
+  
+  ##########
+  
+  
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
                   control = control, id = id, family = famret,
                   corstr = corstr, allobs = allobs, sandwich = sandwich)
@@ -496,6 +503,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     vbeta.j1s = vbeta_otherse,
                     vbeta.fij = vbeta_otherse,
                     vbeta.ajs = vbeta_otherse,
+                    vbeta.naiv = as.matrix(results$naiv.var),
                     gamma = results$phi, #!!! OBS: Tjek om phi og gamma er det samme eller om der er en transformation imellem
                     vgamma =  vgamma_otherse, #!! placeholder - check: do we compute this at all?
                     vgamma.j1s = vgamma_otherse,
@@ -516,9 +524,14 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     )
     class(geeseobj) <- c("geese", "list")
     
+#    browser()
+    
     #leave out dropped observations from ordering 
-    oldorder_noNA <- order(neworder[-dropind])
-
+    if (length(dropind) > 0) { #case: any obs dropped 
+      oldorder_noNA <- order(neworder[-dropind])
+    } else { #case: no obs dropped
+      oldorder_noNA <- order(neworder)
+    }
   
     out <- list(coefficients = coefs,
                     residuals = results$resid[oldorder_noNA],
@@ -527,6 +540,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     rank = model_rank, #rank of model matrix
                     qr = qr(na.omit(X)), #not entirely sure if this is the correct matrix to compute QR decompostion for... 
                                          #also: should we reinset dropped rows and fill them with NAs post hoc?
+                                         #also: order back to oldorder?
                     family = famret,
                     linear.predictors = results$eta[oldorder_noNA],
                     weights = results$weights[oldorder_noNA],

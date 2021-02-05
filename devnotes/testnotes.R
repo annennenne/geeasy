@@ -147,6 +147,7 @@ debugonce(geepack:::summary.geeglm)
 debugonce(geepack:::print.geeglm)
 debugonce(geepack:::print.summary.geeglm)
 debugonce(geem.fit)
+debugonce(geem2)
 
 predict(mm_gm2) - predict(mm_gp) < 0.01
 

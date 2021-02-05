@@ -1,5 +1,5 @@
 #Compute Wald confidence intervals for mean structure parameters of geeglm object
-
+#' @export
 confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "sandwich") {
   betas <- object$coefficients
   if (std.err %in% c("san.se", "sandwich")) {
