@@ -110,7 +110,7 @@
 #'   a weight of 0.  Note that these weights  are now the same as PROC GEE weights 
 #'   and not PROC GENMOD. CHECK IF THIS IS STILL TRUE OR SHOULD BE CHANGED. 
 #' 
-#' @author Lee McDaniel and Nick Henderson
+#' @author Anne Helby Petersen, Lee McDaniel & Nick Henderson
 #' 
 #' @seealso \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
 #' 
@@ -259,8 +259,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   dat <- dat[neworder, ] 
   
-  # Inverse of neworder that will help order output back to original order
-  oldorder <- order(neworder) 
+#  # Inverse of neworder that will help order output back to original order
+#  oldorder <- order(neworder) 
   
   # Find missing information in variables used for the linear predictor and response
   # note: na.inds contains information on both row and columns of NAs - both are needed below. 
@@ -380,7 +380,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
 
     
-  X <- model.matrix(formula, dat)
+  X <- model.matrix(formula, dat) #nas 
   Y <- model.response(dat)
   offset <- model.offset(dat)
   
@@ -515,26 +515,30 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     xnames = colnames(X)
                     )
     class(geeseobj) <- c("geese", "list")
+    
+    #leave out dropped observations from ordering 
+    oldorder_noNA <- order(neworder[-dropind])
 
   
     out <- list(coefficients = coefs,
-                    residuals = results$resid[oldorder],
-                    fitted.values = results$fitted.values[oldorder],
+                    residuals = results$resid[oldorder_noNA],
+                    fitted.values = results$fitted.values[oldorder_noNA],
                     effects = NA, #not required for glm objects, ever used? note: documented in white book
                     rank = model_rank, #rank of model matrix
-                    qr = qr(X), #not entirely sure if this is the correct matrix to compute QR decompostion for... 
+                    qr = qr(na.omit(X)), #not entirely sure if this is the correct matrix to compute QR decompostion for... 
+                                         #also: should we reinset dropped rows and fill them with NAs post hoc?
                     family = famret,
-                    linear.predictors = results$eta[oldorder],
-                    weights = results$weights[oldorder],
+                    linear.predictors = results$eta[oldorder_noNA],
+                    weights = results$weights[oldorder_noNA],
                     prior.weights = prior.weights,
                     df.residual = sum(results$weights != 0) - model_rank,
-                    y = Y[oldorder],
+                    y = Y[oldorder_noNA],
                     model = dat,
                     call = thiscall,
                     formula = formula,
                     terms =  terms(formula),
                     data = data,
-                    offset = results$offset[oldorder],
+                    offset = results$offset[oldorder_noNA],
                     control = control,
                     method = "geem.fit",
                     constrasts = attr(X, "contrasts"),
