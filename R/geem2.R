@@ -12,11 +12,10 @@
 #' and higher numbered rows in a cluster are assumed to be later.  
 #' If NULL, then each observation is assigned its own cluster.
 #' 
-#' @param waves An integer vector identifying components of a cluster. 
-#' For example, this could be a time ordering. If integers are skipped within 
-#' a cluster, then dummy rows with weight 0 are added in an attempt to preserve
-#' the correlation structure (except if \code{corstr = "exchangeable"} or 
-#' \code{"independent"}). This can be skipped by setting \code{nodummy=TRUE}.
+#' @param waves An integer vector identifying the time ordering within clusters 
+#' (i.e. levels of \code{id}). Note that only the ordering is used, NOT the 
+#' numeric values of the wave. This means that non-equidistant time points are
+#' not being used for fitting in e.g. AR1. 
 #' 
 #' @param data An optional data frame containing the variables in the model.
 #' 
@@ -42,35 +41,13 @@
 #'   structure is \code{"userdefined"}, then this is a matrix describing which 
 #'   correlations are the same.
 #'   
-#' @param init.beta An optional vector with the initial values of beta.  If not 
-#'  specified, then the intercept will be set to \code{InvLink(mean(response))}. 
-#'   \code{init.beta} must be specified if not using an intercept.
-#'   
-#' @param init.alpha An optional scalar or vector giving the initial values for 
-#'   the correlation.  If provided along with \code{Mv>1} or \code{unstructured} 
-#'   correlation, then the user must ensure that the vector is of the appropriate 
-#'   length.
-#'   
-#' @param init.phi An optional initial overdispersion parameter.  If not supplied, 
-#'   initialized to 1.
-#'   
-#' @param scale.fix If set to \code{TRUE}, then the scale parameter is fixed at
-#'    the value of \code{init.phi}.
-#'    
-#' @param nodummy If set to \code{TRUE}, then dummy rows will not be added
-#'    based on the values in \code{waves}.
-#'    
 #' @param sandwich If \code{TRUE}, calculate robust variance.
 #'    
 #' @param useP If set to \code{FALSE}, do not use the n-p correction for 
 #'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
 #'    useful when the number of observations is small, as subtracting p may yield 
 #'    correlations greater than 1.
-#'    
-#' @param maxit Maximum number of iterations.
-#'    
-#' @param tol Tolerance in calculation of coefficients.
-#' 
+#'     
 #' @details Users may specify functions for link and variance functions, but the
 #'  functions must be vectorized functions.  See \code{\link{Vectorize}} for an easy
 #'  way to vectorize functions.  \code{Vectorize} should be used sparingly, however, 
@@ -178,10 +155,8 @@
 #' @export
 geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                  family = gaussian, corstr = "independence", Mv = 1,
-                 weights = NULL, corr.mat = NULL, #init.beta=NULL,
-                # init.alpha=NULL, init.phi = 1, 
-                 scale.fix = FALSE, nodummy = FALSE,
-                 sandwich = TRUE, #useP = TRUE, #maxit = 20, #tol = 0.00001,
+                 weights = NULL, corr.mat = NULL, 
+                 nodummy = FALSE,  sandwich = TRUE, 
                  output = "geem",
                  control = geem.control()){
   
@@ -403,25 +378,14 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   if (output == "geem") {
     # Create object of class geem with information about the fit
    
- 
+    #add slots not already available in geem.fit output
     results$coefnames <- colnames(X)
     results$call <- thiscall
     results$X <- X
-    
-#!!!!!!!!!!!!!!!!!!replace or leave out?    results$dropped <- dropid
-    results$dropped <- "Put something here?"
-     #NOTE: original geem sometimes included this slot, sometimes not, as it was
-     #set to NULL if not used and hence (unintentionally?) dropped. 
-     #Backwards compatibility may be in conflict with keeping a strict output structure. 
-    
+    results$dropped <- uniqueid[dodropid]
     results$terms <- terms(formula)
     results$y <- Y
     results$formula <- formula
-    
-    
-    #Delete terms not used for geem-output
-    results$resid <- NULL
-    results$fitted.values <- NULL
     
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
@@ -432,7 +396,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     results <-results[old_geem_out_order]
     
     class(results) <- "geem"
-    
     return(results)
   } 
   
@@ -444,7 +407,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     # Rank of model matrix
     model_rank <- Matrix::rankMatrix(na.omit(X)) #!!!!! check: ok to do na.omit here?
     
-  #construct modelinfo which is used both for geese and full geeglm object
+    # construct modelinfo which is used both for geese and full geeglm object
     modelInfo = list(mean.link  = famret$link,
                      variance = famret$family,
                      sca.link = "identity",
@@ -452,44 +415,41 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                      corstr = corstr$name,
                      scale.fix = scale.fix)
    
-  #construct geese object - necessary for geepack methods
-    
-    #construct variance object with correct dimensions but filled with zeros
-    #as these alternative variance estimation options are not yet supported
-    #note: zero matrices in this scenario is geepack standard 
+    # construct variance objects with correct dimensions but filled with zeros
+    # as these alternative variance estimation options are not yet supported
+    # note: zero matrices in this scenario is geepack standard 
     vbeta <- as.matrix(results$var) #note: need "regular" matrix for geeglm methods to work
     vbeta_otherse <- vbeta
     vbeta_otherse[,] <- 0
     vgamma_otherse <- matrix(0, nrow = length(results$phi), ncol = length(results$phi))
     valpha_otherse <- matrix(0, nrow = length(results$alpha), ncol = length(results$alpha))
     
-   geeseobj <- list(beta = coefs,
-                    vbeta = vbeta,
-                    vbeta.j1s = vbeta_otherse,
-                    vbeta.fij = vbeta_otherse,
-                    vbeta.ajs = vbeta_otherse,
-                    vbeta.naiv = as.matrix(results$naiv.var),
-                    gamma = results$phi, #!!! OBS: Tjek om phi og gamma er det samme eller om der er en transformation imellem
-                    vgamma =  vgamma_otherse, #!! placeholder - check: do we compute this at all?
-                    vgamma.j1s = vgamma_otherse,
-                    vgamma.fij = vgamma_otherse,
-                    vgamma.ajs = vgamma_otherse,
-                    alpha = results$alpha, #!! placeholde - check: do we compute this at all?
-                    valpha =  valpha_otherse,
-                    valpha.j1s = valpha_otherse,
-                    valpha.fij = valpha_otherse,
-                    valpha.ajs = valpha_otherse,
-                    model = modelInfo,
-                    control = control,
-                    error = NA,  #not sure what this one does
-                    clusz = results$clusz,
-                    zsca.names = NULL, #add printed name for dispersion parameter here
-                    zcor.names = NULL, #add printed names for alpha parameters here
-                    xnames = colnames(X)
-                    )
+    # construct geese object - necessary for geepack methods
+    geeseobj <- list(beta = coefs,
+                     vbeta = vbeta,
+                     vbeta.j1s = vbeta_otherse,
+                     vbeta.fij = vbeta_otherse,
+                     vbeta.ajs = vbeta_otherse,
+                     vbeta.naiv = as.matrix(results$naiv.var),
+                     gamma = results$phi, #!!! OBS: Tjek om phi og gamma er det samme eller om der er en transformation imellem
+                     vgamma =  vgamma_otherse, #!! placeholder - check: do we compute this at all?
+                     vgamma.j1s = vgamma_otherse,
+                     vgamma.fij = vgamma_otherse,
+                     vgamma.ajs = vgamma_otherse,
+                     alpha = results$alpha, #!! placeholde - check: do we compute this at all?
+                     valpha =  valpha_otherse,
+                     valpha.j1s = valpha_otherse,
+                     valpha.fij = valpha_otherse,
+                     valpha.ajs = valpha_otherse,
+                     model = modelInfo,
+                     control = control,
+                     error = NA,  #not sure what this one does
+                     clusz = results$clusz,
+                     zsca.names = NULL, #add printed name for dispersion parameter here
+                     zcor.names = NULL, #add printed names for alpha parameters here
+                     xnames = colnames(X)
+                     )
     class(geeseobj) <- c("geese", "list")
-    
-#    browser()
     
     #leave out dropped observations from ordering 
     if (length(dropind) > 0) { #case: any obs dropped 
@@ -539,7 +499,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
 ## Not exported below
 #####################################################################################
 
-
 ### Simple moment estimator of dispersion parameter
 #' @import Matrix
 updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, useP){
@@ -555,6 +514,7 @@ updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, u
   return(as.numeric(phi))
 }
 
+  
 ### Method to update coefficients.  Goes to a maximum of 10 iterations, or when
 ### rough convergence has been obtained.
 updateBeta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
@@ -584,6 +544,7 @@ updateBeta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
   return(list(beta = beta.new, hess = hess))
 }
 
+
 ### Calculate the sandiwch estimator as usual.
 getSandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
                         InvLink, VarFun, hessMat, StdErr, dInvLinkdEta,
@@ -603,6 +564,7 @@ getSandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
   
   return(list(sandvar = sandvar, numsand = numsand))
 }
+
 
 
 # Get levels for all factors from model.frame type object

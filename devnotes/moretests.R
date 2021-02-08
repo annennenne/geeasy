@@ -110,8 +110,9 @@ QIC(m)
 
 
 ####################################################################################
-# Hndling of non-equidistant time points via waves argument
+# Handling of non-equidistant time points via waves argument
 ####################################################################################
+
 set.seed(123)
 exdat <- data.frame(x = rnorm(20))
 exdat$y <- exdat$x + rnorm(20) 
