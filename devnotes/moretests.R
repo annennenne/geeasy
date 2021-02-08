@@ -1,3 +1,8 @@
+library(geepack)
+library(devtools)
+load_all()
+source("devnotes/helpers.R") 
+
 ####################################################################################
 # Investigate behavior of geepack::geeglm when data contains NA (but not 
 # in variables used for)
@@ -15,7 +20,7 @@ m1 <- geeglm(outcome ~ treat,
                 id = interaction(center, id),
                 family = "binomial", corstr = "exchangeable")
 
-m2 <- geeglm(outcome ~ treat + navarused, 
+m2 <- geeglm(outcome ~ treat, 
              data = resp2,
              id = interaction(center, id),
              family = "binomial", corstr = "exchangeable")
@@ -27,7 +32,6 @@ summary(m1); summary(m2)
  # Conclusion: 
  # seems fine: missing information in "other" variables is ignored.
 
-####################################################################################
 
 ####################################################################################
 # Investigate output format when there is missing information in input 
@@ -45,7 +49,7 @@ exdat$helpnum <- 1:20
 lm0 <- lm(y ~ x + helpnum, exdat)
 glm0 <- glm(y ~ x + helpnum, data = exdat)
 gm20 <- geem2(y ~ x + helpnum, id = id, data = exdat, corstr = "independence",
-             output = "geeglm")
+             output = "geeglm", testARG =NULL)
 lm0; glm0; gm20 #same results
 
 #lm and glm have dropped NAs in output - order is not preserved
@@ -71,7 +75,7 @@ m <- geem2(outcome ~ treat,
              data = respiratory,
              id = with(respiratory, interaction(center, id)),
              family = "binomial", corstr = "exchangeable",
-           output = "geeglm")
+           output = "geeglm", testARG = NULL)
 mgp <- geeglm(outcome ~ treat, 
               data = respiratory,
               id = with(respiratory, interaction(center, id)),
@@ -101,6 +105,9 @@ QIC(m)
 #getME 
   #to do
 
+#anova
+  #to do
+
 
 ####################################################################################
 # Investigate handling of non-equidistant time points via waves argument
@@ -115,11 +122,15 @@ exdat <- exdat[sample(1:20, 20),] #scramble order
 #corstr: exchangeable
 m_exch_waves <- geem2(y ~ x, id = id, waves = time,
                       data = exdat, corstr = "exchangeable",
-                      output = "geeglm")
+                      output = "geeglm", testARG = NULL)
+
+m_gp <- geeglm(y ~ x, id = id, waves = time,
+                      data = exdat, corstr = "exchangeable")
+
 
 m_exch_nowaves <- geem2(y ~ x, id = id,
                       data = exdat, corstr = "exchangeable",
-                      output = "geeglm")
+                      output = "geeglm", testARG = NULL)
 
 identicalLists(m_exch_waves, m_exch_nowaves, ignore = c("call"), chatty = TRUE) #OK
 
@@ -142,7 +153,7 @@ m_ar1_waves_d <- geem2(y ~ x, id = id, waves = time,
 
 m_ar1_nowaves <- geem2(y ~ x, id = id,
                         data = exdat, corstr = "ar1",
-                        output = "geeglm")
+                        output = "geeglm", testARG = NULL)
 
 m_ar1_waves_a
 m_ar1_waves_b
@@ -150,13 +161,3 @@ m_ar1_waves_c
 m_ar1_waves_d
 m_ar1_nowaves
 
-
-m_ar1_waves
-m_ar1_nowaves
- #different alpha estimates but similar beta estimates - promising.
-
-debugonce(geem2)
-m_ar1_waves
-
-identicalLists(m_ar1_waves, m_ar1_nowaves, ignore = c("call"), chatty = TRUE) #OK
-               

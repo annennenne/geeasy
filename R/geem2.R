@@ -259,6 +259,24 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   dat <- dat[neworder, ] 
   
+  # Check if waves are equidistant. If they are, set waves to NULL: we are done using the 
+  # values of waves now, as data have already been sorted according to waves within ids
+  # If the waves are not equidistant, signal a warning and proceed as if they were 
+  # equidistant (i.e. use only sorting, set waves to NULL)
+  if (!is.null(waves)) {
+    waves_are_equidist <- by(dat$waves, as.factor(dat$id), is_equidistant)
+    if (any(!waves_are_equidist)) {
+      warning(paste("Non-equidistant waves were provided.",
+                    "Note that only their ordering was used for model fitting.",
+                    "Their numeric values were ignored."))
+    }
+  }
+  dat$waves <- NULL #note: this has no effect further down. Kept here to make it clear that
+                    #waves argument is no longer being used after sorting. 
+  
+  
+  
+  
 #  # Inverse of neworder that will help order output back to original order
 #  oldorder <- order(neworder) 
   
@@ -289,32 +307,32 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #*#   }
   
   
-  # Check for and handle gaps in waves by inserting dummy rows in the data
-  # so that waves become equidistant
-  if(!is.null(dat$waves)){
-    wavespl <- split(dat$waves, dat$id)
-    idspl <- split(dat$id, dat$id)
-    
-    maxwave <- rep(0, length(wavespl))
-    incomp <- rep(0, length(wavespl))
-    
-    for(i in 1:length(wavespl)){
-      maxwave[i] <- max(wavespl[[i]]) - min(wavespl[[i]]) + 1
-      if(maxwave[i] != length(wavespl[[i]])){
-        incomp[i] <- 1
-      }
-    }
-    
-    #If there are gaps and correlation isn't independent or exchangeable
-    #then we'll add some dummy rows
-    if(!(corstr %in% c("independence", "exchangeable")) & 
-       (sum(incomp) > 0) & !nodummy){
-      dat <- dummyrows(formula, dat, incomp, maxwave, wavespl, idspl)
-      id <- dat$id
-      waves <- dat$waves
-      weights <- dat$weights
-    }
-  }
+  #*#  # Check for and handle gaps in waves by inserting dummy rows in the data
+  #*## so that waves become equidistant
+#*#  if(!is.null(dat$waves)){
+  #*#wavespl <- split(dat$waves, dat$id)
+  #*#idspl <- split(dat$id, dat$id)
+  #*#  
+  #*#  maxwave <- rep(0, length(wavespl))
+  #*#  incomp <- rep(0, length(wavespl))
+  #*#  
+  #*#  for(i in 1:length(wavespl)){
+  #*#    maxwave[i] <- max(wavespl[[i]]) - min(wavespl[[i]]) + 1
+  #*#    if(maxwave[i] != length(wavespl[[i]])){
+  #*#      incomp[i] <- 1
+  #*#    }
+  #*#  }
+  #*#  
+  #*#  #If there are gaps and correlation isn't independent or exchangeable
+  #*#  #then we'll add some dummy rows
+  #*#  if(!(corstr %in% c("independence", "exchangeable")) & 
+  #*#     (sum(incomp) > 0) & !nodummy){
+  #*#    dat <- dummyrows(formula, dat, incomp, maxwave, wavespl, idspl)
+  #*#    id <- dat$id
+  #*#    waves <- dat$waves
+  #*#    weights <- dat$weights
+  #*#  }
+  #*#}
   
   # Note that we need to assign weight 0 to rows with NAs
   # in order to preserve the correlation structure
@@ -657,4 +675,13 @@ get_xlevels <- function(modelframe) {
 }
 
 
+# Check if a sorted numeric vector, x, is equidistant, i.e. same difference
+# for all two subsequent entires. If x contains one or no elements, TRUE
+# is outputted
+is_equidistant <- function(x) {
+  nx <- length(x)
+  if (nx > 1) {
+    return(length(unique(x[-1] - x[-nx])) == 1)
+  } else return(TRUE)
+}
 
