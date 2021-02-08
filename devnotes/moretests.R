@@ -110,54 +110,33 @@ QIC(m)
 
 
 ####################################################################################
-# Investigate handling of non-equidistant time points via waves argument
+# Hndling of non-equidistant time points via waves argument
 ####################################################################################
 set.seed(123)
 exdat <- data.frame(x = rnorm(20))
 exdat$y <- exdat$x + rnorm(20) 
 exdat$id <- rep(1:5, each = 4)
-exdat$time <- c(1, 2, 3, 4, 1, 2, 5, 6, 1, 2, 4, 3, 5, 6, 1, 10, 1, 2, 3, 4)
+exdat$time_nonequi <- c(1, 2, 3, 4, 1, 2, 5, 6, 1, 2, 4, 3, 5, 6, 1, 10, 1, 2, 3, 4)
+exdat$time_equi <- c(1:4, 1:4,  1, 2, 4, 3,   2, 3, 1, 4,   1:4)
 exdat <- exdat[sample(1:20, 20),] #scramble order
 
-#corstr: exchangeable
-m_exch_waves <- geem2(y ~ x, id = id, waves = time,
-                      data = exdat, corstr = "exchangeable",
-                      output = "geeglm", testARG = NULL)
+m_ar1_waves_nonequidist <- geem2(y ~ x, id = id, waves = time_nonequi,
+                                 data = exdat, corstr = "ar1",
+                                 output = "geeglm", testARG = NULL)
 
-m_gp <- geeglm(y ~ x, id = id, waves = time,
-                      data = exdat, corstr = "exchangeable")
+m_ar1_waves_equidist <- geem2(y ~ x, id = id, waves = time_equi,
+                              data = exdat, corstr = "ar1",
+                              output = "geeglm", testARG = NULL)
 
-
-m_exch_nowaves <- geem2(y ~ x, id = id,
-                      data = exdat, corstr = "exchangeable",
-                      output = "geeglm", testARG = NULL)
-
-identicalLists(m_exch_waves, m_exch_nowaves, ignore = c("call"), chatty = TRUE) #OK
-
-#corstr ar1:
-m_ar1_waves_a <- geem2(y ~ x, id = id, waves = time,
-                      data = exdat, corstr = "ar1",
-                      output = "geeglm", testARG = 0)
-
-m_ar1_waves_b <- geem2(y ~ x, id = id, waves = time,
-                     data = exdat, corstr = "ar1",
-                     output = "geeglm", testARG = 5)
-
-m_ar1_waves_c <- geem2(y ~ x, id = id, waves = time,
-                     data = exdat, corstr = "ar1",
-                     output = "geeglm", testARG = 100)
-
-m_ar1_waves_d <- geem2(y ~ x, id = id, waves = time,
-                       data = exdat, corstr = "ar1",
-                       output = "geeglm", testARG = NULL)
-
-m_ar1_nowaves <- geem2(y ~ x, id = id,
+m_ar1_nowaves <-  geem2(y ~ x, id = id,
                         data = exdat, corstr = "ar1",
                         output = "geeglm", testARG = NULL)
 
-m_ar1_waves_a
-m_ar1_waves_b
-m_ar1_waves_c
-m_ar1_waves_d
-m_ar1_nowaves
+#compare outputs
+  m_ar1_waves_nonequidist
+  m_ar1_waves_equidist
+   #identical results (as expected)
 
+  m_ar1_nowaves
+    #different results than the other
+    #this is also as expected, since the waves are not ordered 1:4

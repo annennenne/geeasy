@@ -183,7 +183,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                  scale.fix = FALSE, nodummy = FALSE,
                  sandwich = TRUE, #useP = TRUE, #maxit = 20, #tol = 0.00001,
                  output = "geem",
-                 control = geem.control(), testARG){
+                 control = geem.control()){
   
   ########################################################################
   #Check and prep input arguments ########################################
@@ -259,10 +259,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   dat <- dat[neworder, ] 
   
-  # Check if waves are equidistant. If they are, set waves to NULL: we are done using the 
-  # values of waves now, as data have already been sorted according to waves within ids
+  # Check if waves are equidistant. If they are, we are done using the 
+  # values of waves now, as data have already been sorted according to waves within ids.
   # If the waves are not equidistant, signal a warning and proceed as if they were 
-  # equidistant (i.e. use only sorting, set waves to NULL)
+  # equidistant (i.e. use only order information - this has already been done in sorting)
   if (!is.null(waves)) {
     waves_are_equidist <- by(dat$waves, as.factor(dat$id), is_equidistant)
     if (any(!waves_are_equidist)) {
@@ -271,14 +271,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     "Their numeric values were ignored."))
     }
   }
-  dat$waves <- NULL #note: this has no effect further down. Kept here to make it clear that
-                    #waves argument is no longer being used after sorting. 
   
-  
-  
-  
-#  # Inverse of neworder that will help order output back to original order
-#  oldorder <- order(neworder) 
   
   # Find missing information in variables used for the linear predictor and response
   # note: na.inds contains information on both row and columns of NAs - both are needed below. 
@@ -307,55 +300,13 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #*#   }
   
   
-  #*#  # Check for and handle gaps in waves by inserting dummy rows in the data
-  #*## so that waves become equidistant
-#*#  if(!is.null(dat$waves)){
-  #*#wavespl <- split(dat$waves, dat$id)
-  #*#idspl <- split(dat$id, dat$id)
-  #*#  
-  #*#  maxwave <- rep(0, length(wavespl))
-  #*#  incomp <- rep(0, length(wavespl))
-  #*#  
-  #*#  for(i in 1:length(wavespl)){
-  #*#    maxwave[i] <- max(wavespl[[i]]) - min(wavespl[[i]]) + 1
-  #*#    if(maxwave[i] != length(wavespl[[i]])){
-  #*#      incomp[i] <- 1
-  #*#    }
-  #*#  }
-  #*#  
-  #*#  #If there are gaps and correlation isn't independent or exchangeable
-  #*#  #then we'll add some dummy rows
-  #*#  if(!(corstr %in% c("independence", "exchangeable")) & 
-  #*#     (sum(incomp) > 0) & !nodummy){
-  #*#    dat <- dummyrows(formula, dat, incomp, maxwave, wavespl, idspl)
-  #*#    id <- dat$id
-  #*#    waves <- dat$waves
-  #*#    weights <- dat$weights
-  #*#  }
-  #*#}
-  
+
   # Note that we need to assign weight 0 to rows with NAs
   # in order to preserve the correlation structure
   if(!is.null(na.inds)){
     weights[unique(na.inds[,1])] <- 0 #!!! consider: should this be done in "weights" within dat instead?
-    
-    ##???? It looks like single imputation is swept in below - but maybe it's just filling in a placeholder
-    ## value that won't be used? But why? those obs should be dropped anyway below?
-
-    #*#    for(i in unique(na.inds[,2])){
-    #*#      if(is.factor(dat[,i])){
-    #*#        dat[na.inds[,1], i] <- levels(dat[,i])[1]
-    #*#      }else{
-    #*#        dat[na.inds[,1], i] <- median(dat[,i], na.rm=T)
-    #*#      }
-    #*#    }
-    #*#  
-    }
   
-  
-  #
   includedvec <- weights > 0
-  
   inclsplit <- split(includedvec, id)
   
 
@@ -432,11 +383,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #!!! check: can we avoid passing allobs argument and instead recompute it 
   # in geem.fit?
   
-  #########3
-  #DELETETHIS!!!!!!!!!!
-  if (!is.null(testARG))  X[weights == 0, "x"] <- testARG
   
-  ##########
   
   
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
