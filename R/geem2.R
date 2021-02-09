@@ -328,7 +328,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   offset <- model.offset(dat)
   
   
-  # Intialize offset if not supplied by user
+  # Initialize offset if not supplied by user
   ## if no offset is given, then set to zero
   if (is.null(offset)) offset <- rep(0, nrow(X))
   
@@ -336,7 +336,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   if (corstr == "m-dependent") {
     attr(corstr, "Mv") <- Mv
   } else if (corstr %in% c("fixed", "userdefined")) {
-    attr(corstr, "cprr.mat") <- corr.mat
+    attr(corstr, "corr.mat") <- corr.mat
   }
   
   # handle family argument
@@ -370,7 +370,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Pack and return output #################################################################
   ##########################################################################################
   
-  
   if (output == "geem") {
     # Create object of class geem with information about the fit
 
@@ -388,8 +387,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     # the original input data but may differ in observations if NAs were dropped
     # along the way!
     newdat <- model.frame(formula, data, na.action = na.pass) 
-    results$X <- model.matrix(formula, dat)
-    
+    results$X <- model.matrix(formula, newdat)
+
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
                             "niter", "converged", "naiv.var", "var",
@@ -475,8 +474,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     prior.weights = prior.weights,
                     df.residual = sum(results$weights != 0) - model_rank,
                     y = Y[oldorder_noNA],
-                    model = dat, # note: this should NOT be reordered/recomputed. It is used by anova/drop1/add1 to fit new 
-                                 # models on the same exact observations. 
+                    model = dat[oldorder_noNA,], #note: this is reordered (back to input order) in order to get correct
+                                                 #outout from anova.
                     call = thiscall,
                     formula = formula,
                     terms =  terms(formula),

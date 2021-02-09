@@ -69,28 +69,36 @@ cbind(fitted(lm0), fitted(glm0), fitted(gm20))
 
 library(geepack)
 data("respiratory")
+respiratory$useid <- with(respiratory, interaction(center, id))
 
 #model
+m0 <- geem2(outcome ~ 1, 
+           data = respiratory,
+           id = useid,
+           family = "binomial", corstr = "exchangeable",
+           output = "geeglm")
 m <- geem2(outcome ~ treat, 
              data = respiratory,
-             id = with(respiratory, interaction(center, id)),
+             id = useid,
              family = "binomial", corstr = "exchangeable",
            output = "geeglm")
 m2 <- geem2(outcome ~ treat + sex + age + baseline, 
             data = respiratory,
-            id = with(respiratory, interaction(center, id)),
+            id = useid,
             family = "binomial", corstr = "exchangeable",
             output = "geeglm")
+mgp0 <- geeglm(outcome ~ 1, 
+              data = respiratory,
+              id = useid,
+              family = "binomial", corstr = "exchangeable")
 mgp <- geeglm(outcome ~ treat, 
               data = respiratory,
-              id = with(respiratory, interaction(center, id)),
+              id = useid,
               family = "binomial", corstr = "exchangeable")
 mgp2 <- geeglm(outcome ~ treat + sex + age + baseline, 
               data = respiratory,
-              id = with(respiratory, interaction(center, id)),
+              id = useid,
               family = "binomial", corstr = "exchangeable")
-mglm2 <- glm(outcome ~ treat + sex + age + baseline, 
-          data = respiratory, family = "binomial")
 
 #print
 m
@@ -118,14 +126,77 @@ QIC(m)
   #to do
 
 #anova
-anova(m) #works with one covariate
-anova(m2) #works with several covariates
+
+#zero covariates - doesn't work 
+# - but doesn't work for original geeglm either (bug reported)
+anova(m0) 
+anova(mgp0)
+
+#one covariate - works
+anova(m)
+
+#multiple covariates - works
+anova(m2) 
+anova(mgp2)
+
+#comaparison of two nested models - doesn't work
 anova(m, m2) #doesn't work!
 
-anova(mgp2)
-debugonce(geepack:::anova.geeglm)
-  
+anova(mgp, mgp2)
 
+anova(mglm0, mglm2)
+
+debugonce(geepack:::anova.geeglm)
+debugonce(geepack:::anova.geeglmlist)
+debugonce(geepack:::anovageePrim2)
+
+
+m_b <- geem2(outcome ~ treat, 
+           data = respiratory,
+           id = with(respiratory, interaction(center, id)),
+           family = "binomial", corstr = "exchangeable",
+           output = "geeglm")
+m2_b <- geem2(outcome ~ treat + sex , # + baseline, 
+            data = respiratory,
+            id = useid,
+            family = "binomial", corstr = "exchangeable",
+            output = "geeglm")
+mgp_2b <- geeglm(outcome ~ treat + sex,
+              data = respiratory, id = useid, 
+              family = "binomial", corstr = "exchangeable")
+anova(m2_b)
+anova(mgp2_b)
+
+
+
+
+
+anova(mgp0, mgp)
+anova(mgp, geeglm(outcome ~ treat + sex,
+                  data = respiratory, id = useid, 
+                  family = "binomial", corstr = "exchangeable"))
+anova(geeglm(outcome ~ treat + sex,
+             data = respiratory, id = useid, 
+             family = "binomial", corstr = "exchangeable"),
+      geeglm(outcome ~ treat + sex + age,
+             data = respiratory, id = useid, 
+             family = "binomial", corstr = "exchangeable"))
+anova(geeglm(outcome ~ treat + sex + age,
+             data = respiratory, id = useid, 
+             family = "binomial", corstr = "exchangeable"),
+      geeglm(outcome ~ treat + sex + age + baseline,
+             data = respiratory, id = useid, 
+             family = "binomial", corstr = "exchangeable"))
+
+
+
+anova(m_b)
+anova(m)
+anova(mgp)
+
+anova(m2)
+anova(m2_b)
+anova(mgp2)
 
 ####################################################################################
 # Handling of non-equidistant time points via waves argument
