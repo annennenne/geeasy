@@ -49,7 +49,7 @@ exdat$helpnum <- 1:20
 lm0 <- lm(y ~ x + helpnum, exdat)
 glm0 <- glm(y ~ x + helpnum, data = exdat)
 gm20 <- geem2(y ~ x + helpnum, id = id, data = exdat, corstr = "independence",
-             output = "geeglm", testARG =NULL)
+             output = "geeglm")
 lm0; glm0; gm20 #same results
 
 #lm and glm have dropped NAs in output - order is not preserved

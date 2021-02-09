@@ -360,9 +360,6 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #!!! check: can we avoid passing allobs argument and instead recompute it 
   # in geem.fit?
   
-  
-  
-  
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
                   control = control, id = id, family = famret,
                   corstr = corstr, allobs = allobs)
@@ -373,15 +370,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Pack and return output #################################################################
   ##########################################################################################
   
-   
-  dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
-  X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
-   #Would rather have it not be -- otherwise population may change for anova calls!!!!
-   #In other words: prioritize making this the same X and same Y! No new data!
   
   if (output == "geem") {
     # Create object of class geem with information about the fit
-   
+
     #add slots not already available in geem.fit output
     results$coefnames <- colnames(X)
     results$call <- thiscall
@@ -391,6 +383,12 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     results$y <- Y
     results$formula <- formula
     results$var <- results$vbeta
+    
+    # new dat and X objects are standard in geem - these will be ordered as 
+    # the original input data but may differ in observations if NAs were dropped
+    # along the way!
+    newdat <- model.frame(formula, data, na.action = na.pass) 
+    results$X <- model.matrix(formula, dat)
     
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
@@ -477,7 +475,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     prior.weights = prior.weights,
                     df.residual = sum(results$weights != 0) - model_rank,
                     y = Y[oldorder_noNA],
-                    model = dat,
+                    model = dat, # note: this should NOT be reordered/recomputed. It is used by anova/drop1/add1 to fit new 
+                                 # models on the same exact observations. 
                     call = thiscall,
                     formula = formula,
                     terms =  terms(formula),
