@@ -75,11 +75,23 @@ m <- geem2(outcome ~ treat,
              data = respiratory,
              id = with(respiratory, interaction(center, id)),
              family = "binomial", corstr = "exchangeable",
-           output = "geeglm", testARG = NULL)
+           output = "geeglm")
+m2 <- geem2(outcome ~ treat + sex + age + baseline, 
+            data = respiratory,
+            id = with(respiratory, interaction(center, id)),
+            family = "binomial", corstr = "exchangeable",
+            output = "geeglm")
 mgp <- geeglm(outcome ~ treat, 
               data = respiratory,
               id = with(respiratory, interaction(center, id)),
               family = "binomial", corstr = "exchangeable")
+mgp2 <- geeglm(outcome ~ treat + sex + age + baseline, 
+              data = respiratory,
+              id = with(respiratory, interaction(center, id)),
+              family = "binomial", corstr = "exchangeable")
+mglm2 <- glm(outcome ~ treat + sex + age + baseline, 
+          data = respiratory, family = "binomial")
+
 #print
 m
 
@@ -106,7 +118,13 @@ QIC(m)
   #to do
 
 #anova
-  #to do
+anova(m) #works with one covariate
+anova(m2) #works with several covariates
+anova(m, m2) #doesn't work!
+
+anova(mgp2)
+debugonce(geepack:::anova.geeglm)
+  
 
 
 ####################################################################################
@@ -141,3 +159,4 @@ m_ar1_nowaves <-  geem2(y ~ x, id = id,
   m_ar1_nowaves
     #different results than the other
     #this is also as expected, since the waves are not ordered 1:4
+    

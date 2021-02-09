@@ -1,5 +1,5 @@
 geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
-                     allobs, sandwich) {
+                     allobs, start = NULL) {
   
   # Unpack family functions
     LinkFun <- family$linkfun
@@ -19,6 +19,14 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   }
   if(!is.finite(VarFun(meanY))) {
     stop("Infinite or NaN in the variance of the mean of responses. Make sure variance function makes sense for these data.")
+  }
+  
+  
+  #!!!! quick solution, consider if this should be done more elegantly (changing code below)
+  if (control$std.err == "san.se") {
+    sandwich <- TRUE
+  } else {
+    sandwich <- FALSE
   }
   
   ###############################################################################################
@@ -92,10 +100,10 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   ###############################################################################################
   
   # Initialize for each correlation structure
-  if(corstr$name == "independence") {
+  if(corstr == "independence") {
     R.alpha.inv <- Diagonal(x = rep.int(1, nn))/phi
     BlockDiag <- getBlockDiag(len)$BDiag
-  } else if(corstr$name == "ar1"){
+  } else if(corstr == "ar1"){
     tmp <- buildAlphaInvAR(len)
     # These are the vectors needed to update the inverse correlation
     a1 <- tmp$a1
@@ -108,7 +116,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     col.vec <- tmp$col.vec
     BlockDiag <- getBlockDiag(len)$BDiag
     
-  } else if(corstr$name == "exchangeable"){
+  } else if(corstr == "exchangeable"){
     # Build a block diagonal correlation matrix for updating and sandwich calculation
     # this matrix is block diagonal with all ones.  Each block is of dimension cluster size.
     tmp <- getBlockDiag(len)
@@ -121,9 +129,9 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
       n.vec[(index[i]+1) : index[i+1]] <-  rep(includedlen[i], len[i])
     }
     
-  } else if(corstr$name == "m-dependent") {
+  } else if(corstr == "m-dependent") {
     
-    Mv <- corstr$extra
+    Mv <- attr(corstr, "Mv")
     
     #check that M is not too large
     if(Mv >= max(len)){
@@ -137,7 +145,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
     
-  } else if(corstr$name == "unstructured"){
+  } else if(corstr == "unstructured"){
     
     if( max(len^2 - len)/2 > length(len)){
       stop("Cannot estimate that many parameters: not enough subjects for unstructured correlation")
@@ -147,8 +155,8 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
     
-  } else if(corstr$name == "fixed") {
-    corr.mat <- corstr$extra
+  } else if(corstr == "fixed") {
+    corr.mat <- attr(corstr, "corr.mat")
     
     # check if matrix meets some basic conditions
     corr.mat <- checkFixedMat(corr.mat, len)
@@ -156,8 +164,8 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     R.alpha.inv <- as(getAlphaInvFixed(corr.mat, len), "symmetricMatrix")/phi
     BlockDiag <- getBlockDiag(len)$BDiag
     
-  } else if(corstr$name == "userdefined") {
-    corr.mat <- corstr$extra
+  } else if(corstr == "userdefined") {
+    corr.mat <- attr(corstr, "corr.mat")
   
     corr.mat <- checkUserMat(corr.mat, len)
     
@@ -213,21 +221,21 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     
     
     ## Calculate alpha, R(alpha)^(-1) / phi
-    if(corstr$name == "ar1") { 
+    if(corstr == "ar1") { 
       
       alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
                                  included, includedlen, includedvec, allobs,
                                  sqrtW, BlockDiag, useP)
       R.alpha.inv <- getAlphaInvAR(alpha.new, a1, a2, a3, a4, row.vec, col.vec)/phi
       
-    } else if(corstr$name == "exchangeable") {
+    } else if(corstr == "exchangeable") {
      
       alpha.new <- updateAlphaEX(y, mu, VarFun, phi, id, len, StdErr,
                                  Resid, p, BlockDiag, included,
                                  includedlen, sqrtW, useP)
       R.alpha.inv <- getAlphaInvEX(alpha.new, n.vec, BlockDiag)/phi
       
-    } else if(corstr$name == "m-dependent") {
+    } else if(corstr == "m-dependent") {
       
       if(Mv==1){ #???? change - this should be done way earlier if Mv = 1 means AR1 (but is that right???)
         alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
@@ -248,7 +256,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
       }
       R.alpha.inv <- getAlphaInvMDEP(alpha.new, len, row.vec, col.vec)/phi
       
-    } else if(corstr$name == "unstructured") {
+    } else if(corstr == "unstructured") {
      
       alpha.new <- updateAlphaUnstruc(y, mu, VarFun, phi, id, len,
                                       StdErr, Resid,  p, BlockDiag,
@@ -261,7 +269,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
       }
       R.alpha.inv <- getAlphaInvUnstruc(alpha.new, len, row.vec, col.vec)/phi
 
-    } else if(corstr$name == "fixed") {
+    } else if(corstr == "fixed") {
       
       # FIXED CORRELATION, DON'T NEED TO RECOMPUTE
       #!! Note: if !scale.fix phi may be updated. But otherwise this is not happening. 
@@ -270,7 +278,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
       R.alpha.inv <- R.alpha.inv*phi.old/phi 
       alpha.new <- NULL
      
-    } else if(corstr$name == "userdefined") {
+    } else if(corstr == "userdefined") {
      
       alpha.new <- updateAlphaUser(y, mu, phi, id, len, StdErr, Resid,
                                    p, BlockDiag, user.row, user.col,
@@ -278,7 +286,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
                                    allobs, sqrtW, useP)
       R.alpha.inv <- getAlphaInvUser(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec)/phi
       
-    } else if(corstr$name == "independence") {
+    } else if(corstr == "independence") {
       ###!!! use glm in this scenario? don't go into recursive updating here? 
       R.alpha.inv <-  Diagonal(x = rep.int(1/phi, nn))
       alpha.new <- "independent"
@@ -304,14 +312,14 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   
   if(K == 1){
     biggest.R.alpha.inv <- R.alpha.inv
-    if(corstr$name == "fixed") {
+    if(corstr == "fixed") {
       biggest.R.alpha <- corr.mat*phi
     } else {
       biggest.R.alpha <- solve(R.alpha.inv)
     }
   } else { # case: K != 1
     biggest.R.alpha.inv <- R.alpha.inv[(index+1):(index+len[biggest]) , (index+1):(index+len[biggest])]
-    if(corstr$name == "fixed"){ 
+    if(corstr == "fixed"){ 
       biggest.R.alpha <- corr.mat[1:len[biggest] , 1:len[biggest]]*phi
     }else{
       biggest.R.alpha <- solve(biggest.R.alpha.inv)
@@ -331,7 +339,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   if(is.character(alpha)){
     alpha <- 0
   }
-  if(corstr$name == "fixed") {
+  if(corstr == "fixed") {
     alpha <- as.vector(triu(corr.mat, 1)[which(triu(corr.mat, 1) != 0)])
   }
   
@@ -349,17 +357,20 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   } #!!! consider restructuring so that this slot is used more generally for error-messages,
   # which would allow for it to be reused by other correlation structures
   
+  # Prep betas for output - add parameter names
+  beta <- as.vector(beta)
+  names(beta) <- colnames(x)
   
   # Collect and return everything
   out <- list(alpha = alpha,
-              beta = as.vector(beta),
+              beta = beta,
               phi = phi,
               niter = count - 1,
              # converged = converged,
             #  unstable = unstable,
               naiv.var = solve(beta.list$hess), 
-              var = sandvar.list$sandvar,
-              corr = corstr$name, 
+             # var = sandvar.list$sandvar,
+              corr = corstr, 
               clusz = len,
               FunList = family,
               offset = offset,
@@ -367,7 +378,8 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
               weights = weights,
               biggest.R.alpha = biggest.R.alpha/phi,
               resid = pearson_resid,
-              fitted.values = fitted.values)
+              fitted.values = fitted.values,
+              vbeta =  as.matrix(sandvar.list$sandvar))
   
   out
   

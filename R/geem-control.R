@@ -1,7 +1,7 @@
 geem.control <- function(#init.alpha = NULL, 
                          init.beta = NULL, init.phi = 1,
                          tol = 0.00001, maxit = 20, scale.fix = FALSE,
-                         useP = TRUE) {
+                         useP = TRUE, std.err = "san.se") {
   
   
   if(scale.fix & is.null(init.phi)){
@@ -18,7 +18,8 @@ geem.control <- function(#init.alpha = NULL,
        useP = useP,
        jack = 0, #for geese methods
        j1s = 0, #for geese methods
-       fij = 0 #for geese methods
+       fij = 0, #for geese methods
+       std.err = std.err
        )
 }
 

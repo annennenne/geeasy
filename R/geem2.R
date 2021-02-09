@@ -40,13 +40,13 @@
 #'   be symmetric with dimensions >= the maximum cluster size.  If the correlation 
 #'   structure is \code{"userdefined"}, then this is a matrix describing which 
 #'   correlations are the same.
-#'   
-#' @param sandwich If \code{TRUE}, calculate robust variance.
 #'    
 #' @param useP If set to \code{FALSE}, do not use the n-p correction for 
 #'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
 #'    useful when the number of observations is small, as subtracting p may yield 
 #'    correlations greater than 1.
+#'  
+#' @output BLABLABLA
 #'     
 #' @details Users may specify functions for link and variance functions, but the
 #'  functions must be vectorized functions.  See \code{\link{Vectorize}} for an easy
@@ -156,8 +156,8 @@
 geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                  family = gaussian, corstr = "independence", Mv = 1,
                  weights = NULL, corr.mat = NULL, 
-                 nodummy = FALSE,  sandwich = TRUE, 
-                 output = "geem",
+                 nodummy = FALSE,  
+                 output = "geeglm",
                  control = geem.control()){
   
   ########################################################################
@@ -280,11 +280,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # in order to preserve the correlation structure
   if(!is.null(na.inds)){
     weights[unique(na.inds[,1])] <- 0 #!!! consider: should this be done in "weights" within dat instead?
+  } 
   
   includedvec <- weights > 0
   inclsplit <- split(includedvec, id)
-  
-
   
   #Find indexes to be dropped
   dropind <- NULL 
@@ -333,10 +332,12 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   ## if no offset is given, then set to zero
   if (is.null(offset)) offset <- rep(0, nrow(X))
   
-  #add extra info to corstr if necessary
-  corstr <- list(name = corstr, extra = NULL)
-  if (corstr$name == "m-dependent") corstr$extra <- Mv
-  if (corstr$name %in% c("fixed", "userdefined")) corstr$extra <- corr.mat
+  # add extra info to corstr if necessary. These are stored as attributes. 
+  if (corstr == "m-dependent") {
+    attr(corstr, "Mv") <- Mv
+  } else if (corstr %in% c("fixed", "userdefined")) {
+    attr(corstr, "cprr.mat") <- corr.mat
+  }
   
   # handle family argument
   famret <- getfam(family)
@@ -350,6 +351,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     names(famret)[c("LinkFun", "VarFun", "InvLink", "InvLinkDeriv")] <-
       c("linkfun", "variance", "linkinv", "mu.eta")
   }
+  
 
   ##########################################################################################
   # Do actual fitting      #################################################################
@@ -363,7 +365,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   
   results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
                   control = control, id = id, family = famret,
-                  corstr = corstr, allobs = allobs, sandwich = sandwich)
+                  corstr = corstr, allobs = allobs)
   
 
   
@@ -374,6 +376,8 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
    
   dat <- model.frame(formula, data, na.action = na.pass) #!!! check - is this different than dat defined above?
   X <- model.matrix(formula, dat) #!!! check - is this different than X defined above?
+   #Would rather have it not be -- otherwise population may change for anova calls!!!!
+   #In other words: prioritize making this the same X and same Y! No new data!
   
   if (output == "geem") {
     # Create object of class geem with information about the fit
@@ -386,6 +390,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     results$terms <- terms(formula)
     results$y <- Y
     results$formula <- formula
+    results$var <- results$vbeta
     
     #reorder list to make it identical to previous structure
     old_geem_out_order <- c("beta", "phi", "alpha", "coefnames", 
@@ -412,13 +417,13 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                      variance = famret$family,
                      sca.link = "identity",
                      cor.link = "identity",
-                     corstr = corstr$name,
-                     scale.fix = scale.fix)
+                     corstr = corstr,
+                     scale.fix = control$scale.fix)
    
     # construct variance objects with correct dimensions but filled with zeros
     # as these alternative variance estimation options are not yet supported
     # note: zero matrices in this scenario is geepack standard 
-    vbeta <- as.matrix(results$var) #note: need "regular" matrix for geeglm methods to work
+    vbeta <- results$vbeta #note: need "regular" matrix for geeglm methods to work
     vbeta_otherse <- vbeta
     vbeta_otherse[,] <- 0
     vgamma_otherse <- matrix(0, nrow = length(results$phi), ncol = length(results$phi))
@@ -485,9 +490,9 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     geese = geeseobj, 
                     modelInfo = modelInfo,
                     id = id,
-                    corstr = corstr$name,
+                    corstr = corstr,
                     cor.link = "identity",
-                    std.err = ifelse(sandwich, "sandwich", "????"))
+                    std.err = control$std.err)
     class(out) <- c("geeglm", "gee", "glm", "lm")
     
     return(out)
@@ -585,12 +590,14 @@ get_xlevels <- function(modelframe) {
 
 
 # Check if a sorted numeric vector, x, is equidistant, i.e. same difference
-# for all two subsequent entires. If x contains one or no elements, TRUE
+# for all two subsequent entries. If x contains one or no elements, TRUE
 # is outputted
 is_equidistant <- function(x) {
   nx <- length(x)
   if (nx > 1) {
     return(length(unique(x[-1] - x[-nx])) == 1)
-  } else return(TRUE)
+  } else {
+    return(TRUE)
+  }
 }
 
