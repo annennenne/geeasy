@@ -151,52 +151,11 @@ debugonce(geepack:::anova.geeglmlist)
 debugonce(geepack:::anovageePrim2)
 
 
-m_b <- geem2(outcome ~ treat, 
-           data = respiratory,
-           id = with(respiratory, interaction(center, id)),
-           family = "binomial", corstr = "exchangeable",
-           output = "geeglm")
-m2_b <- geem2(outcome ~ treat + sex , # + baseline, 
-            data = respiratory,
-            id = useid,
-            family = "binomial", corstr = "exchangeable",
-            output = "geeglm")
-mgp_2b <- geeglm(outcome ~ treat + sex,
-              data = respiratory, id = useid, 
-              family = "binomial", corstr = "exchangeable")
-anova(m2_b)
-anova(mgp2_b)
+model.offset(lm(outcome ~ treat + offset(baseline) + offset(rep(1, nrow(respiratory))), respiratory)$model)
 
 
 
 
-
-anova(mgp0, mgp)
-anova(mgp, geeglm(outcome ~ treat + sex,
-                  data = respiratory, id = useid, 
-                  family = "binomial", corstr = "exchangeable"))
-anova(geeglm(outcome ~ treat + sex,
-             data = respiratory, id = useid, 
-             family = "binomial", corstr = "exchangeable"),
-      geeglm(outcome ~ treat + sex + age,
-             data = respiratory, id = useid, 
-             family = "binomial", corstr = "exchangeable"))
-anova(geeglm(outcome ~ treat + sex + age,
-             data = respiratory, id = useid, 
-             family = "binomial", corstr = "exchangeable"),
-      geeglm(outcome ~ treat + sex + age + baseline,
-             data = respiratory, id = useid, 
-             family = "binomial", corstr = "exchangeable"))
-
-
-
-anova(m_b)
-anova(m)
-anova(mgp)
-
-anova(m2)
-anova(m2_b)
-anova(mgp2)
 
 ####################################################################################
 # Handling of non-equidistant time points via waves argument

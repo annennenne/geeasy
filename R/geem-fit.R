@@ -33,21 +33,34 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
   # Initialization
   ###############################################################################################
   
-  # Initialize beta
-  #!! consider starting at glm fit rather than these beta values?
-  beta <- control$init.beta
-  
-  if(is.null(beta)) {
-    # Is there an intercept column?
-    interceptcol <- apply(x == 1, 2, all)
+  #OLD BETA INITIALIZATION CODE - DELETE???? 
+  ##############
+  if (FALSE) {
+    # Initialize beta
+    beta <- control$init.beta
     
-    if(any(interceptcol)){
-      #if there is an intercept and no initial beta, then use link of mean of response
-      beta <- rep(0, p)
-      beta[which(interceptcol)] <- linkOfMean
-    } else {
-      stop("Must supply an initial beta if not using an intercept.")
+    if(is.null(beta)) {
+      # Is there an intercept column?
+      interceptcol <- apply(x == 1, 2, all)
+      
+      if(any(interceptcol)){
+        #if there is an intercept and no initial beta, then use link of mean of response
+        beta <- rep(0, p)
+        beta[which(interceptcol)] <- linkOfMean
+      } else {
+        stop("Must supply an initial beta if not using an intercept.")
+      }
     }
+  }
+  ###############
+  
+  #Initialize beta
+  #First choice: Values supplied via control
+  #Second choice: Values from glm fit
+  beta <- control$init.beta
+  if (is.null(beta)) {
+    m_glm <- glm.fit(x = x, y = y, offset = offset, family = family, weights = weights)
+    beta <- m_glm$coefficients
   }
   
   #Initialize phi

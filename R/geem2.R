@@ -156,6 +156,7 @@
 geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                  family = gaussian, corstr = "independence", Mv = 1,
                  weights = NULL, corr.mat = NULL, 
+                 offset = NULL,
                  nodummy = FALSE,  
                  output = "geeglm",
                  control = geem.control()){
@@ -325,12 +326,22 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     
   X <- model.matrix(formula, dat) #nas 
   Y <- model.response(dat)
-  offset <- model.offset(dat)
   
-  
-  # Initialize offset if not supplied by user
+  #Handle offset. Note: Can be specified both in formula AND
+  #in seperate offset argument (needed for glm type methods including
+  #anova comparisons of nested models)
   ## if no offset is given, then set to zero
-  if (is.null(offset)) offset <- rep(0, nrow(X))
+  formulaoffset <- model.offset(dat)
+  if (is.null(formulaoffset)) formulaoffset <- rep(0, nrow(X))
+  
+  if (is.null(offset)) {
+    offset <- formulaoffset
+  } else {
+    offset <- offset + formulaoffset
+  }
+  
+ 
+  
   
   # add extra info to corstr if necessary. These are stored as attributes. 
   if (corstr == "m-dependent") {
