@@ -157,6 +157,6 @@ fillMatList <- function(real.sizes){
   
 }
 
-model.matrix.geem <- function(object, ...){
-  return(model.matrix(object$formula, data=model.frame(object)))
-}
+#*#model.matrix.geem <- function(object, ...){
+#*#  return(model.matrix(object$formula, data=model.frame(object)))
+#*#}

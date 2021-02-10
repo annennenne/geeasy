@@ -91,11 +91,12 @@ for (i in 1:nrow(res)) {
   }
 
   set.seed(123)
-  mm_dev <- tryCatch({geeM2::geem2(thisFormula, data = resp, 
+  mm_dev <- tryCatch({geek::geelm(thisFormula, data = resp, 
                          id = with(resp, interaction(center, id)),
                          family = "binomial", corstr = thisCorStr, Mv = thisMv,
                          corr.mat = thisCorr, waves = theseWaves,
-                         weights = theseWeights)}, error = function(e) 0)
+                         weights = theseWeights, 
+                         output = "geem")}, error = function(e) 0)
   
   if (identical(mm_dev, 0)) {
     res$error_new[i] <- TRUE
@@ -124,7 +125,7 @@ for (i in 1:nrow(res)) {
 if (FALSE) {
 
 debugonce(geem2)
-mm_gm2 <- geem2(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1, 
+mm_gm2 <- geelm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1, 
                  data = resp, 
                  id = with(resp, interaction(center, id)),
                      family = "binomial", corstr = "unstructured",

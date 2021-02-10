@@ -1,4 +1,4 @@
-geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
+geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
                      allobs, start = NULL) {
   
   # Unpack family functions
@@ -229,7 +229,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
     }
     
     #Compute residuals
-    Resid <- residuals_geem(StdErr = StdErr, included = included, 
+    Resid <- residuals_geelm(StdErr = StdErr, included = included, 
                             sqrtW = sqrtW, YY = y, mu = mu)
     
     
@@ -393,6 +393,7 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
               resid = pearson_resid,
               fitted.values = fitted.values,
               vbeta =  as.matrix(sandvar.list$sandvar))
+  class(out) <- c("geelm.fit", "list")
   
   out
   
@@ -403,6 +404,6 @@ geem.fit <- function(x, y, id, offset, family, weights, control, corstr,
 
 
 ## Compute residuals
-residuals_geem <- function(StdErr, included, sqrtW, YY, mu) {
+residuals_geelm <- function(StdErr, included, sqrtW, YY, mu) {
   StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu)
 }

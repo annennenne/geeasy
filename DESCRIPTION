@@ -1,27 +1,28 @@
-Package: geeM2
+Package: geek
 Type: Package
-Title: Solve Generalized Estimating Equations
-Version: 0.10.1
-Authors@R: c(person("Lee", "McDaniel", role = c("aut", "cre"),email = "lmcda4@lsuhsc.edu"),
+Title: Tools for fitting generalized linear models with clustered observations using 
+    generalized estimating equations.
+Version: 0.1
+Authors@R: c(person("Anne Helby", "Petersen", role = c("aut", "cre"),email = "ahpe@sund.ku.dk"),
+      person("Lee", "McDaniel", role = c("aut")),
 			person("Nick", "Henderson", role = "aut"),
 			person("Melanie", "Prague", role = "ctb",comment = "Suggested code to fix weighting"))
-Date: 2018-05-21
-Author: Lee McDaniel [aut, cre],
+Date: 2021-02-10
+Author: Anne Helby Petersen [aut, cre],
+  Lee McDaniel [aut],
   Nick Henderson [aut],
   Melanie Prague [ctb] (Suggested code to fix weighting)
-Maintainer: Lee McDaniel <lmcda4@lsuhsc.edu>
-Depends: Matrix
+Maintainer: Anne Helby Petersen <ahpe@sund.ku.dk>
+Depends: Matrix, geepack
 Imports: stats, methods
-Suggests: geepack, testthat, MuMIn
-Description: GEE estimation of the parameters in mean structures with possible
-    correlation between the outcomes. User-specified mean link and variance
-    functions are allowed, along with observation weighting. The 'M' in the name
-    'geeM' is meant to emphasize the use of the Matrix package, which allows for an
-    implementation based fully in R.
-License: GPL-3
-ByteCompile: TRUE
-NeedsCompilation: no
-Packaged: 2018-06-18 15:09:05 UTC; lmcda4
-Repository: CRAN
-Date/Publication: 2018-06-18 15:49:55 UTC
+Suggests: testthat, MuMIn
+Description: Estimation of generalized linear models with correlated/clustered observations
+    by use of generalized estimating equations (GEE). Several types of clustering are supported,
+    including exchangeable variance structures, AR1 structures, M-dependent, user-specified 
+    variance structures and more. The model fitting computations are performed using modified
+    code from the geeM package, while the interface and output objects have been written 
+    to resemble the geepack package. The package also contains further tools for working with
+    and inspecting results from the geepack package, e.g. a confint() method for geepack's 
+    geeglm objects. 
+License: GPL-3.
 RoxygenNote: 7.1.1

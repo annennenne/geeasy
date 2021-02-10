@@ -68,21 +68,22 @@ cbind(fitted(lm0), fitted(glm0), fitted(gm20))
 ####################################################################################
 
 library(geepack)
+library(geek)
 data("respiratory")
 respiratory$useid <- with(respiratory, interaction(center, id))
 
 #model
-m0 <- geem2(outcome ~ 1, 
+m0 <- geelm(outcome ~ 1, 
            data = respiratory,
            id = useid,
            family = "binomial", corstr = "exchangeable",
            output = "geeglm")
-m <- geem2(outcome ~ treat, 
+m <- geelm(outcome ~ treat, 
              data = respiratory,
              id = useid,
              family = "binomial", corstr = "exchangeable",
            output = "geeglm")
-m2 <- geem2(outcome ~ treat + sex + age + baseline, 
+m2 <- geelm(outcome ~ treat + sex + age + baseline, 
             data = respiratory,
             id = useid,
             family = "binomial", corstr = "exchangeable",
@@ -113,8 +114,12 @@ predict(m, newdata = data.frame(treat = c("A", "P")))
 #confint (NEW!)
 confint(m)
 
-#drop1/add1
- #find in MESS?
+#drop1
+ library(MESS) 
+ drop1(m2)
+ 
+#add1
+ #todo? 
 
 #plot 
   #use plotEstimates?
@@ -126,33 +131,21 @@ QIC(m)
   #to do
 
 #anova
-
-#zero covariates - doesn't work 
-# - but doesn't work for original geeglm either (bug reported)
-anova(m0) 
-anova(mgp0)
-
-#one covariate - works
-anova(m)
-
-#multiple covariates - works
-anova(m2) 
-anova(mgp2)
-
-#comaparison of two nested models - doesn't work
-anova(m, m2) #doesn't work!
-
-anova(mgp, mgp2)
-
-anova(mglm0, mglm2)
-
-debugonce(geepack:::anova.geeglm)
-debugonce(geepack:::anova.geeglmlist)
-debugonce(geepack:::anovageePrim2)
-
-
-model.offset(lm(outcome ~ treat + offset(baseline) + offset(rep(1, nrow(respiratory))), respiratory)$model)
-
+  #zero covariates - doesn't work 
+  # - but doesn't work for original geeglm either (bug reported)
+  anova(m0) 
+  anova(mgp0)
+  
+  #one covariate - works
+  anova(m)
+  
+  #multiple covariates - works
+  anova(m2) 
+  anova(mgp2)
+  
+  #comaparison of two nested models - works
+  anova(m, m2) 
+  anova(mgp, mgp2)
 
 
 
@@ -169,17 +162,17 @@ exdat$time_nonequi <- c(1, 2, 3, 4, 1, 2, 5, 6, 1, 2, 4, 3, 5, 6, 1, 10, 1, 2, 3
 exdat$time_equi <- c(1:4, 1:4,  1, 2, 4, 3,   2, 3, 1, 4,   1:4)
 exdat <- exdat[sample(1:20, 20),] #scramble order
 
-m_ar1_waves_nonequidist <- geem2(y ~ x, id = id, waves = time_nonequi,
+m_ar1_waves_nonequidist <- geelm(y ~ x, id = id, waves = time_nonequi,
                                  data = exdat, corstr = "ar1",
-                                 output = "geeglm", testARG = NULL)
+                                 output = "geeglm")
 
-m_ar1_waves_equidist <- geem2(y ~ x, id = id, waves = time_equi,
+m_ar1_waves_equidist <- geelm(y ~ x, id = id, waves = time_equi,
                               data = exdat, corstr = "ar1",
-                              output = "geeglm", testARG = NULL)
+                              output = "geeglm")
 
-m_ar1_nowaves <-  geem2(y ~ x, id = id,
+m_ar1_nowaves <-  geelm(y ~ x, id = id,
                         data = exdat, corstr = "ar1",
-                        output = "geeglm", testARG = NULL)
+                        output = "geeglm")
 
 #compare outputs
   m_ar1_waves_nonequidist

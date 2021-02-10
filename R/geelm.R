@@ -57,7 +57,7 @@
 #'  Offsets must be specified in the model formula, as in glm.
 #'  
 #'  For the \code{"userdefined"} correlation option, the function accepts a 
-#'  matrix with consecutive integers.  \code{geem} only looks at the upper 
+#'  matrix with consecutive integers.  \code{geelm} only looks at the upper 
 #'  triangle of the matrix.  Any entry given as 0 will be fixed at 0.  All
 #'   entries given as 1 will be assumed to be the same as each other and will 
 #'   be assumed to be possibly different from entries with a 2, and so on.
@@ -74,13 +74,13 @@
 #'  In order to define a link function, a list must be created with the 
 #'  components \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, all of which are 
 #'  vectorized functions.  If the components in the list are not named
-#'   as \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, then \code{geem} 
+#'   as \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, then \code{geelm} 
 #'   assumes that the functions are given in that order.  LinkFun and VarFun 
 #'   are the link and variance functions. InvLink and InvLinkDeriv are the inverse 
 #'   of the link function and the derivative of the inverse of the link function 
 #'   and so are decided by the choice of the link function.
 #' 
-#' @return An object of class \code{geem} representing the fit.
+#' @return An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit.
 #' 
 #'   Observations with a \code{NA} in the variables specified in the \code{formula}
 #'   argument, \code{weights} (if used) or \code{waves} (if used) will be assigned 
@@ -120,13 +120,13 @@
 #'   
 #' X <- cbind(rep(1,5),c(-.5,-.25,0,.25,.5))
 #' testdat <- generatedata(beta=c(1,.5),alpha=.2,gamma=.5,X=X,T=5,n=3000)
-#' far1 <- geem(count~ time, id=subject ,data = testdat, family=poisson, 
+#' far1 <- geelm(count~ time, id=subject ,data = testdat, family=poisson, 
 #'              corstr="ar1")
 #'              
 #' ### Ohio respiratory data from geepack
 #'  if(require(geepack)){
 #'      data("ohio", package="geepack")
-#'      resplogit <- geem(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
+#'      resplogit <- geelm(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
 #'                        family = binomial, corstr = "m-dep" , Mv = 1)
 #'      LinkFun <- function(arg){qcauchy(arg)}
 #'      InvLink <- function(arg){pcauchy(arg)}
@@ -134,7 +134,7 @@
 #'      VarFun <- function(arg){arg*(1-arg)}
 #'      FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)
 #'      
-#'      respcauchit <- geem(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
+#'      respcauchit <- geelm(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
 #'                          family = FunList, corstr = "m-dep" , Mv=1)
 #' }
 #' 
@@ -148,18 +148,18 @@
 #'     seiz.l$t <- ifelse(seiz.l$time == 0, 8, 2)
 #'     seiz.l$x <- ifelse(seiz.l$time == 0, 0, 1)
 #'     
-#'     seiz <- geem(y~ x + trt + x:trt+ offset(log(t)), id=id,data = seiz.l, 
+#'     seiz <- geelm(y~ x + trt + x:trt+ offset(log(t)), id=id,data = seiz.l, 
 #'                  family = poisson, corstr = "exchangeable")
 #' }
 #' 
 #' @export
-geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
+geelm <- function(formula, id, waves=NULL, data = parent.frame(),
                  family = gaussian, corstr = "independence", Mv = 1,
                  weights = NULL, corr.mat = NULL, 
                  offset = NULL,
                  nodummy = FALSE,  
-                 output = "geeglm",
-                 control = geem.control()){
+                 output = "geelm",
+                 control = geelm.control()){
   
   ########################################################################
   #Check and prep input arguments ########################################
@@ -371,7 +371,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   #!!! check: can we avoid passing allobs argument and instead recompute it 
   # in geem.fit?
   
-  results <- geem.fit(x = X, y = Y, offset = offset, weights = weights,
+  results <- geelm.fit(x = X, y = Y, offset = offset, weights = weights,
                   control = control, id = id, family = famret,
                   corstr = corstr, allobs = allobs)
   
@@ -381,10 +381,10 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
   # Pack and return output #################################################################
   ##########################################################################################
   
-  if (output == "geem") {
-    # Create object of class geem with information about the fit
+  if (output == "geeM") {
+    # Create object resembling original geeM::geem() output
 
-    #add slots not already available in geem.fit output
+    #add slots not already available in geelm.fit output
     results$coefnames <- colnames(X)
     results$call <- thiscall
     results$X <- X
@@ -412,7 +412,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
     return(results)
   } 
   
-  if (output == "geeglm") {
+  if (output %in% c("geeglm", "geeglm")) {
 #    browser()
     coefs <- results$beta
     names(coefs) <- colnames(X)
@@ -502,7 +502,7 @@ geem2 <- function(formula, id, waves=NULL, data = parent.frame(),
                     corstr = corstr,
                     cor.link = "identity",
                     std.err = control$std.err)
-    class(out) <- c("geeglm", "gee", "glm", "lm")
+    class(out) <- c("geelm", "geeglm", "gee", "glm", "lm")
     
     return(out)
   }
