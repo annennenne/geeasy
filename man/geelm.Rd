@@ -15,9 +15,9 @@ geelm(
   weights = NULL,
   corr.mat = NULL,
   offset = NULL,
-  nodummy = FALSE,
   output = "geelm",
-  control = geem.control()
+  control = geelm.control(),
+  engine = "geeasy"
 )
 }
 \arguments{
@@ -58,18 +58,70 @@ be symmetric with dimensions >= the maximum cluster size.  If the correlation
 structure is \code{"userdefined"}, then this is a matrix describing which 
 correlations are the same.}
 
+\item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
+an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
+\code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
+object.}
+
+\item{engine}{Engine used to fit the model. The default, \code{"geeasy"} uses this
+package (built on the \code{geeM} package), while \code{"geepack"} uses
+the function \code{geeglm} from \code{geepack} to fit the model. Note that if 
+the geepack engine is used, the data are sorted according to id (and possibly 
+waves within id) and NAs are dropped before the data is used 
+(this differs from the standard in geepack).}
+
 \item{useP}{If set to \code{FALSE}, do not use the n-p correction for 
 dispersion and correlation estimates, as in Liang and Zeger. This can be 
 useful when the number of observations is small, as subtracting p may yield 
 correlations greater than 1.}
 }
 \value{
-An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit.
-
-  Observations with a \code{NA} in the variables specified in the \code{formula}
-  argument, \code{weights} (if used) or \code{waves} (if used) will be assigned 
-  a weight of 0.  Note that these weights  are now the same as PROC GEE weights 
-  and not PROC GENMOD. CHECK IF THIS IS STILL TRUE OR SHOULD BE CHANGED.
+An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit. It contains
+the following slots:
+* \code{$coefficients}: Coefficients from the mean structure model (betas) on their 
+original scales
+* \code{$residuals}: Pearson residuals, in the order of the inputted dataset (with NAs omitted).
+* \code{$fitted.values}: Fitted values (response scale), in the order of the inputted dataset 
+ (with NAs omitted).
+* \code{$rank}: The rank of the model matrix, i.e. the number of estimated mean structure
+coefficients.
+* \code{$qr}: QR decomposition of the model matrix (NA omitted). 
+* \code{$family}: A family object specifying which exponential family was used for fitting
+the mean structure model, see \code{\link{stats::family}} for more information. 
+* \code{$linear.predictors}: The linear predictor on the original scale.
+* \code{$weights}: Weights used for computations, in the order of the inputted dataset
+ (NAs omitted).
+* \code{$prior.weights}: The original weights used to produce this geeglm object (set
+by user or defaulted to 1 for all observations).
+* \code{$df.residuals}: Residual degrees of freedom.
+* \code{$y}: Outcome variable, in the order of the inputted dataset (NAs omitted).
+* \code{$model}: The model.frame, ordered as the original inputted data with NAs omitted.
+* \code{$call}: The original function call that produced this geeglm object.
+* \code{$formula}: The formula used in the original call.
+* \code{$terms}: The terms of the formula used in the original call.
+* \code{$data}: The original dataset that was used for producing this geeglm object.
+* \code{$offset}: Offset used for fitting the model, ordered as the original inputted data
+with NAs omitted.
+* \code{$control}: Value of control parameters used for fitting the model. 
+* \code{$method}: Internal function used for fitting the model.
+* \code{$contrasts}: Contrasts used in the model matrix.
+* \code{$xlevels}: Levels of factor variables used in the model formula (if any).
+* \code{$geese}: An object containing further information about the variance estimation, 
+including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated 
+coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion 
+parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See 
+\code{\link{geepack::geese}} for more information. 
+* \code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
+and scale structures of the model. 
+* \code{$id}: IDs used for identifying the clusters, ordered as the original inputted data 
+with NAs omitted.
+* \code{$corstr}: Name of the correlation structured imposed on the model. If the 
+correlation structure requires further information, it is stored in a suitably named
+attribute. For example, for m-dependent correlation structures, the m scalar is available
+in an attribute named \code{Mv}. 
+* \code{$cor.link}: Link function used for the correlation structure.
+* \code{$std.err}: Method used to estimate the standard error of the mean structure 
+coefficients (betas).
 }
 \description{
 Calculate coefficients and nuisance parameters using generalized 

@@ -127,8 +127,13 @@ confint(m)
 #QIC
 QIC(m)
 
-#getME 
-  #to do
+#getGEE
+  getGEE(m, "beta")
+  getGEE(m, "beta.se")
+  getGEE(m, "alpha")
+  getGEE(m, "nclusters")
+  getME(m, "beta")
+  getME(mgp, "beta") #works on geepack::geeglm output as well
 
 #anova
   #zero covariates - doesn't work 
@@ -182,4 +187,47 @@ m_ar1_nowaves <-  geelm(y ~ x, id = id,
   m_ar1_nowaves
     #different results than the other
     #this is also as expected, since the waves are not ordered 1:4
-    
+  
+  
+  
+  
+####################################################################################
+## New functionality: use geepack as engine from geeasy::geelm
+####################################################################################
+
+set.seed(123)
+exdat <- data.frame(x = rnorm(20))
+exdat$y <- exdat$x + rnorm(20) 
+exdat$id <- rep(1:5, each = 4)
+exdat2 <- exdat[sample(1:20, 20),] #scramble order  
+  
+m_eng_geeasy_ordered <-  geelm(y ~ x, id = id,
+                         data = exdat, corstr = "exchangeable")
+m_eng_geepack_ordered <-  geelm(y ~ x, id = id,
+                                data = exdat, corstr = "exchangeable",
+                                engine = "geepack")
+m_eng_geeasy_scrambled <-  geelm(y ~ x, id = id,
+                               data = exdat2, corstr = "exchangeable")
+m_eng_geepack_scrambled <-  geelm(y~ x, id = id,
+                                data = exdat2, corstr = "exchangeable",
+                                engine = "geepack")
+
+# Compare geeasy engined results with/without scrambling
+m_eng_geeasy_ordered
+m_eng_geeasy_scrambled
+  #Success: Identical results
+
+# Compare geeasy and geepack engines (ordered data)
+m_eng_geeasy_ordered
+m_eng_geepack_ordered
+  #Success: Similar results 
+
+# Compare geeasy and geepack engines (scrambled data)
+m_eng_geeasy_scrambled
+m_eng_geepack_scrambled
+  #Success: Similar results
+
+# Compare geepack engined results with/without scrambling
+m_eng_geepack_ordered
+m_eng_geepack_scrambled
+  #Success: Identical results
