@@ -5,7 +5,7 @@ Title: Tools for fitting generalized linear models with clustered observations u
 Version: 0.1
 Authors@R: c(person("Anne Helby", "Petersen", role = c("aut", "cre"),email = "ahpe@sund.ku.dk"),
       person("Lee", "McDaniel", role = "aut", comment = "Author of code taken from geeM"),
-			person("Nick", "Henderson", role = "aut", comment = "Author code taken from geeM"),
+			person("Nick", "Henderson", role = "aut", comment = "Author of code taken from geeM"),
 			person("Melanie", "Prague", role = "ctb",comment = "Contributed to geeM"))
 Date: 2021-02-10
 Author: Anne Helby Petersen [aut, cre],
