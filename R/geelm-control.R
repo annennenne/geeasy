@@ -1,3 +1,6 @@
+
+#'
+#' @export
 geelm.control <- function(#init.alpha = NULL, 
                          init.beta = NULL, init.phi = 1,
                          tol = 0.00001, maxit = 20, scale.fix = FALSE,

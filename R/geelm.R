@@ -1,8 +1,8 @@
-#' Fit Generalized Estimating Equations
+#' Fit Generalized Estimating Equation-based Linear Models
 #' 
-#' Calculate coefficients and nuisance parameters using generalized 
-#' estimating equations.  Link and Variance functions can be 
-#' specified by the user.  Similar to \code{\link{glm}}.
+#' Estimate mean structure parameters and their corresponding standard errors for
+#' generalized linear models with clustered or correlated observations by use of 
+#' generalized estimating equations.  
 #' 
 #' @param formula A formula expression similar to that for \code{\link{glm}}, 
 #' of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.

@@ -68,7 +68,7 @@ cbind(fitted(lm0), fitted(glm0), fitted(gm20))
 ####################################################################################
 
 library(geepack)
-library(geek)
+library(geeasy)
 data("respiratory")
 respiratory$useid <- with(respiratory, interaction(center, id))
 
@@ -88,6 +88,16 @@ m2 <- geelm(outcome ~ treat + sex + age + baseline,
             id = useid,
             family = "binomial", corstr = "exchangeable",
             output = "geeglm")
+m2_ar1 <- geelm(outcome ~ treat + sex + age + baseline, 
+            data = respiratory,
+            id = useid,
+            family = "binomial", corstr = "ar1",
+            output = "geeglm")
+m2_indep <- geelm(outcome ~ treat + sex + age + baseline, 
+                data = respiratory,
+                id = useid,
+                family = "binomial", corstr = "independence",
+                output = "geeglm")
 mgp0 <- geeglm(outcome ~ 1, 
               data = respiratory,
               id = useid,
@@ -122,7 +132,24 @@ confint(m)
  #todo? 
 
 #plot 
-  #use plotEstimates?
+  #plot one model (geelm) 
+  plot(m)
+  
+  #plot two models (geelm)
+  plot(m, m2)
+  
+  #plot geelm and geeglm together
+  plot(geelm = m2, geeglm = mgp2)
+  
+  #plot geelms with different corstr together for comparison
+  plot(Exchangeable = m2, Independent = m2_indep,
+       AR1 = m2_ar1)
+  
+  #test: more models than colors in palette 
+  plot(a = m2, b = m2, c = m2, d = m2, 
+       e = m2, f = m2, g = m2, h = m2, i = m2,
+       j = m2, k =m2)
+    #works
 
 #QIC
 QIC(m)

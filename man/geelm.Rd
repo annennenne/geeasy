@@ -2,7 +2,7 @@
 % Please edit documentation in R/geelm.R
 \name{geelm}
 \alias{geelm}
-\title{Fit Generalized Estimating Equations}
+\title{Fit Generalized Estimating Equation-based Linear Models}
 \usage{
 geelm(
   formula,
@@ -124,9 +124,9 @@ in an attribute named \code{Mv}.
 coefficients (betas).
 }
 \description{
-Calculate coefficients and nuisance parameters using generalized 
-estimating equations.  Link and Variance functions can be 
-specified by the user.  Similar to \code{\link{glm}}.
+Estimate mean structure parameters and their corresponding standard errors for
+generalized linear models with clustered or correlated observations by use of 
+generalized estimating equations.
 }
 \details{
 Users may specify functions for link and variance functions, but the
