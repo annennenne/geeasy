@@ -39,36 +39,20 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   allobs <- TRUE
   
   ###############################################################################################
-  # Initialization
+  # Initialization #############################################################################
   ###############################################################################################
   
-  #OLD BETA INITIALIZATION CODE - DELETE???? 
-  ##############
-  if (FALSE) {
-    # Initialize beta
-    beta <- control$init.beta
-    
-    if(is.null(beta)) {
-      # Is there an intercept column?
-      interceptcol <- apply(x == 1, 2, all)
-      
-      if(any(interceptcol)){
-        #if there is an intercept and no initial beta, then use link of mean of response
-        beta <- rep(0, p)
-        beta[which(interceptcol)] <- linkOfMean
-      } else {
-        stop("Must supply an initial beta if not using an intercept.")
-      }
-    }
-  }
-  ###############
+  ####################################################################
+  # Initialize estimation vars #######################################
+  ####################################################################
   
   #Initialize beta
   #First choice: Values supplied via control
   #Second choice: Values from glm fit
   beta <- control$init.beta
   if (is.null(beta)) {
-    m_glm <- glm.fit(x = x, y = y, offset = offset, family = family, weights = weights)
+    m_glm <- glm.fit(x = x, y = y, offset = offset, family = family, 
+                     weights = weights)
     beta <- m_glm$coefficients
   }
   
@@ -83,9 +67,9 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   useP <- control$useP  
   tol <- control$tol
   
-  ###############################################################################################
-  # Perform computations needed no matter which corstr is used
-  ###############################################################################################
+  ####################################################################
+  # Perform computations needed no matter which corstr is used #######
+  ####################################################################
   
   # Number of included observations for each cluster
   uniqueid <- unique(id)
@@ -111,14 +95,11 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   #Set up matrix storage
   StdErr <- Diagonal(nn)
   dInvLinkdEta <- Diagonal(nn)
-  Resid <- Diagonal(nn) #?? this is called from step below but never modified. 
-                        #maybe move this definition into the estimator
-  
-  
+  Resid <- Diagonal(nn) 
   
   
   ###############################################################################################
-  # Initialization according to corstr
+  # Initialization according to corstr ##########################################################
   ###############################################################################################
   
   # Initialize for each correlation structure
@@ -152,7 +133,6 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     }
     
   } else if(corstr == "m-dependent") {
-    
     Mv <- attr(corstr, "Mv")
     
     #check that M is not too large
@@ -208,11 +188,10 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   }
   
   
-  #########################################################################
-  # Fit model #############################################################
-  #########################################################################
-
   
+  ###############################################################################################
+  # Fit model ###################################################################################
+  ###############################################################################################
   
   done <- FALSE 
   converged <- FALSE
@@ -221,15 +200,11 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   unstable <- FALSE
   phi.old <- phi
   
-  
   # Fisher scoring loop
   while(!done && count <= maxit) {
-    
-    
+ 
     eta <- as.vector(x %*% beta) + offset
-    
     mu <- InvLink(eta)
-    
     diag(StdErr) <- sqrt(1/VarFun(mu))
     
     if(!scale.fix){
@@ -259,7 +234,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
       
     } else if(corstr == "m-dependent") {
       
-      if(Mv==1){ #???? change - this should be done way earlier if Mv = 1 means AR1 (but is that right???)
+      if(Mv==1){ #???IS THIS RIGHT???? - this should be done way earlier if Mv = 1 means AR1 (but is that right???)
         alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
                                    included, includedlen, includedvec, allobs,
                                    sqrtW, BlockDiag, useP)
@@ -272,9 +247,9 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
           unstable <- TRUE
         }
       }
-      if(any(alpha.new >= 1)){ #!!! this check should probably be done in all cases?
+      if(any(alpha.new >= 1)){ 
         done <- TRUE
-        warning("some estimated correlation is greater than 1, stopping.")
+        warning("An estimated correlation great than 1 was found, stopping before convergence.")
       }
       R.alpha.inv <- getAlphaInvMDEP(alpha.new, len, row.vec, col.vec)/phi
       
@@ -287,16 +262,13 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
       # This has happened to me (greater than 1 correlation estimate)
       if(any(alpha.new >= 1)){
         done <- TRUE
-        warning("some estimated correlation is greater than 1, stopping.")
+        warning("An estimated correlation great than 1 was found, stopping before convergence.")
       }
       R.alpha.inv <- getAlphaInvUnstruc(alpha.new, len, row.vec, col.vec)/phi
 
     } else if(corstr == "fixed") {
       
       # FIXED CORRELATION, DON'T NEED TO RECOMPUTE
-      #!! Note: if !scale.fix phi may be updated. But otherwise this is not happening. 
-      #!! Check if we can avoid iterative estimation here altogether and whether phi
-      #   phi is actually updated when corstr is "fixed". 
       R.alpha.inv <- R.alpha.inv*phi.old/phi 
       alpha.new <- NULL
      
@@ -309,11 +281,10 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
       R.alpha.inv <- getAlphaInvUser(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec)/phi
       
     } else if(corstr == "independence") {
-      ###!!! use glm in this scenario? don't go into recursive updating here? 
+      
       R.alpha.inv <-  Diagonal(x = rep.int(1/phi, nn))
       alpha.new <- "independent"
     }
-    
     
     beta.list <- updateBeta(y, x, beta, offset, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, 
                             dInvLinkdEta, tol, W, included)
@@ -332,6 +303,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   biggest <- which.max(len)[1]
   index <- sum(len[1:biggest])-len[biggest]
   
+  # Information for geem-class output
   if(K == 1){
     biggest.R.alpha.inv <- R.alpha.inv
     if(corstr == "fixed") {
@@ -347,7 +319,6 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
       biggest.R.alpha <- solve(biggest.R.alpha.inv)
     }
   }
-  
   
   eta <- as.vector(x %*% beta) + offset
   if(sandwich){
@@ -376,8 +347,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   }
   if (unstable) {
     warning("Number of subjects with number of observations >= Mv is very small, some correlations are estimated with very low sample size.")
-  } #!!! consider restructuring so that this slot is used more generally for error-messages,
-  # which would allow for it to be reused by other correlation structures
+  } 
   
   # Prep betas for output - add parameter names
   beta <- as.vector(beta)
@@ -388,10 +358,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
               beta = beta,
               phi = phi,
               niter = count - 1,
-             # converged = converged,
-            #  unstable = unstable,
               naiv.var = solve(beta.list$hess), 
-             # var = sandvar.list$sandvar,
               corr = corstr, 
               clusz = len,
               FunList = family,
@@ -410,6 +377,14 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
 }
 
 
+
+
+
+
+
+#####################################################################################
+## Not exported below
+#####################################################################################
 
 
 ## Compute residuals
