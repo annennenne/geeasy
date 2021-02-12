@@ -3,35 +3,6 @@ library(devtools)
 load_all()
 source("devnotes/helpers.R") 
 
-####################################################################################
-# Investigate behavior of geepack::geeglm when data contains NA (but not 
-# in variables used for)
-####################################################################################
-
-data("respiratory")
-resp2 <- respiratory
-resp2$varnotused <- sample(c(0, 1, NA), nrow(respiratory),
-                           replace = TRUE)
-resp2$navarused <- c(rep(NA, 4), sample(c(0,1), nrow(respiratory) - 4,
-                                        replace = TRUE))
-
-m1 <- geeglm(outcome ~ treat, 
-                data = respiratory,
-                id = interaction(center, id),
-                family = "binomial", corstr = "exchangeable")
-
-m2 <- geeglm(outcome ~ treat, 
-             data = resp2,
-             id = interaction(center, id),
-             family = "binomial", corstr = "exchangeable")
-
-coef(m1); coef(m2)
-
-summary(m1); summary(m2)
-  
- # Conclusion: 
- # seems fine: missing information in "other" variables is ignored.
-
 
 ####################################################################################
 # Investigate output format when there is missing information in input 
@@ -44,12 +15,10 @@ exdat$y <- exdat$x + rnorm(20)
 exdat$x[sample(1:20, 5)] <- NA
 exdat$id <- rep(1:5, each = 4)
 exdat <- exdat[sample(1:20, 20),] #scramble order
-exdat$helpnum <- 1:20
 
-lm0 <- lm(y ~ x + helpnum, exdat)
-glm0 <- glm(y ~ x + helpnum, data = exdat)
-gm20 <- geem2(y ~ x + helpnum, id = id, data = exdat, corstr = "independence",
-             output = "geeglm")
+lm0 <- lm(y ~ x, exdat)
+glm0 <- glm(y ~ x, data = exdat)
+gm20 <- geelm(y ~ x, id = id, data = exdat, corstr = "independence")
 lm0; glm0; gm20 #same results
 
 #lm and glm have dropped NAs in output - order is not preserved
@@ -76,28 +45,23 @@ respiratory$useid <- with(respiratory, interaction(center, id))
 m0 <- geelm(outcome ~ 1, 
            data = respiratory,
            id = useid,
-           family = "binomial", corstr = "exchangeable",
-           output = "geeglm")
+           family = "binomial", corstr = "exchangeable")
 m <- geelm(outcome ~ treat, 
              data = respiratory,
              id = useid,
-             family = "binomial", corstr = "exchangeable",
-           output = "geeglm")
+             family = "binomial", corstr = "exchangeable")
 m2 <- geelm(outcome ~ treat + sex + age + baseline, 
             data = respiratory,
             id = useid,
-            family = "binomial", corstr = "exchangeable",
-            output = "geeglm")
+            family = "binomial", corstr = "exchangeable")
 m2_ar1 <- geelm(outcome ~ treat + sex + age + baseline, 
             data = respiratory,
             id = useid,
-            family = "binomial", corstr = "ar1",
-            output = "geeglm")
+            family = "binomial", corstr = "ar1")
 m2_indep <- geelm(outcome ~ treat + sex + age + baseline, 
                 data = respiratory,
                 id = useid,
-                family = "binomial", corstr = "independence",
-                output = "geeglm")
+                family = "binomial", corstr = "independence")
 mgp0 <- geeglm(outcome ~ 1, 
               data = respiratory,
               id = useid,
@@ -125,12 +89,8 @@ predict(m, newdata = data.frame(treat = c("A", "P")))
 confint(m)
 
 #drop1
- library(MESS) 
  drop1(m2)
  
-#add1
- #todo? 
-
 #plot 
   #plot one model (geelm) 
   plot(m)
@@ -163,7 +123,7 @@ QIC(m)
   getME(mgp, "beta") #works on geepack::geeglm output as well
 
 #anova
-  #zero covariates - doesn't work 
+  #zero covariates - doesn't work! 
   # - but doesn't work for original geeglm either (bug reported)
   anova(m0) 
   anova(mgp0)
@@ -217,7 +177,6 @@ m_ar1_nowaves <-  geelm(y ~ x, id = id,
   
   
   
-  
 ####################################################################################
 ## New functionality: use geepack as engine from geeasy::geelm
 ####################################################################################
@@ -262,7 +221,7 @@ m_eng_geepack_scrambled
 
 
 ####################################################################################
-## Test that geelm finds weights/waves/id in data, in global env
+## Test that geelm finds weights/waves/id in data, in global env, as expressions
 ####################################################################################
 
 set.seed(123)
@@ -281,15 +240,15 @@ geelm(y ~ x, data = exdat,
       id = thisid, 
       weights = ws, 
       waves = time,
-      corstr = "ar1")
+      corstr = "exchangeable")
   #works!
 
 # Test: Model with id/weights/waves given as names from data (quoted)
 geelm(y ~ x, data = exdat, 
-      id = "thisid")#, 
-  #    weights = "ws", 
-  #    waves = "time",
-   #   corstr = "exchangeable")
+      id = "thisid", 
+      weights = "ws", 
+      waves = "time",
+      corstr = "exchangeable")
   #works!
 
 # Test: Model with id/weights/waves given as variables from global env
@@ -306,6 +265,7 @@ geelm(y ~ x, data = exdat,
       weights = ws + 2, 
       waves = time + 2, 
       corstr = "exchangeable")
+  #works!
 
 # Test: Model with id/weights/waves given as expressions without names from data
 geelm(y ~ x, data = exdat,
@@ -313,8 +273,7 @@ geelm(y ~ x, data = exdat,
       weights = rep(seq(0.1, 1, 0.1), 2),
       waves = rep(1:4, 5),
       corstr = "exchangeable")
-
-debugonce(geelm)
+ #works!
 
 
 

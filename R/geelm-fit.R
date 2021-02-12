@@ -1,6 +1,11 @@
+#' @alias geelm
+#' 
+#' @export
 geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
-                     allobs, start = NULL) {
-  
+                      start = NULL) {
+  #note: "start" argument included for the sake of anova.geeglm(). It is not
+  #used in any way
+
   # Unpack family functions
     LinkFun <- family$linkfun
     InvLink <- family$linkinv
@@ -8,8 +13,8 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     InvLinkDeriv <- family$mu.eta
   
   # Number of covariates (p) and observations in total
-  p <- dim(x)[2] 
-  nn <- dim(x)[1] 
+  p <- ncol(x)
+  nn <- nrow(x) 
   
   ## Basic check to see if link and variance functions make any kind of sense
   meanY <- mean(y)
@@ -21,13 +26,17 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     stop("Infinite or NaN in the variance of the mean of responses. Make sure variance function makes sense for these data.")
   }
   
-  
-  #!!!! quick solution, consider if this should be done more elegantly (changing code below)
+  # Check if we are using sandwich estimation
   if (control$std.err == "san.se") {
     sandwich <- TRUE
   } else {
     sandwich <- FALSE
   }
+  
+  #This argument was used to handle partially missing obsevations in geem and is
+  #needed for alpha-update functions. If NA handling is rewritten, consider if 
+  #it should be used for anything. 
+  allobs <- TRUE
   
   ###############################################################################################
   # Initialization

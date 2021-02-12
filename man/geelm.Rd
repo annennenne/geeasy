@@ -6,7 +6,7 @@
 \usage{
 geelm(
   formula,
-  id,
+  id = NULL,
   waves = NULL,
   data = parent.frame(),
   family = gaussian,
@@ -15,53 +15,57 @@ geelm(
   weights = NULL,
   corr.mat = NULL,
   offset = NULL,
+  engine = "geeasy",
   output = "geelm",
-  control = geelm.control(),
-  engine = "geeasy"
+  control = geelm.control()
 )
 }
 \arguments{
-\item{formula}{A formula expression similar to that for \code{\link{glm}}, 
-of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.}
+\item{formula}{A formula expression similar to that for \code{\link{glm}},}
 
-\item{id}{A vector identifying the clusters. By default, data are assumed 
+\item{id}{A vector identifying the clusters. If NULL, then each observation is 
+assigned its own cluster.}
+
+\item{waves}{An numeric vector identifying the time ordering within clusters 
+(i.e. levels of \code{id}). By default, data are assumed 
 to be sorted such that observations in a cluster are in consecutive rows 
-and higher numbered rows in a cluster are assumed to be later.  
-If NULL, then each observation is assigned its own cluster.}
-
-\item{waves}{An integer vector identifying the time ordering within clusters 
-(i.e. levels of \code{id}). Note that only the ordering is used, NOT the 
-numeric values of the wave. This means that non-equidistant time points are
-not being used for fitting in e.g. AR1.}
+and higher numbered rows in a cluster are assumed to be later. Note that only the 
+ordering of the values in \code{waves} is used, NOT the numeric values themselves. 
+This means that e.g. having waves equal to \code{c(1, 2, 3)} 
+or \code{c(1, 2, 7)} within a cluster results in the same model.}
 
 \item{data}{An optional data frame containing the variables in the model.}
 
-\item{family}{Will determine the link and variance functions.  The argument 
-can be one of three options: a \code{family} object, a character string,
- or a list of functions. For more information on how to use \code{family} 
- objects, see details below.}
+\item{family}{A description of the error distribution and link function to be used 
+in the model. The argument can be one of three options: a \code{family} object, 
+a character string, or a list of functions. For more information on how to use \code{family} 
+ objects, see Details below.}
 
-\item{corstr}{A character string specifying the correlation structure.
-Allowed structures are: \code{"independence"}, \code{"exchangeable"}, 
-\code{"ar1"}, \code{"m-dependent"}, \code{"unstructured"}, \code{"fixed"}, 
-and \code{"userdefined"}.  Any unique substring may be supplied.  
-If \code{"fixed"} or \code{"userdefined"}, then \code{corr.mat} must be 
-specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.}
+\item{corstr}{A character string specifying the correlation structure. 
+The default is "independence". Allowed structures are: \code{"independence"}, 
+\code{"exchangeable"},  \code{"ar1"}, \code{"m-dependent"}, \code{"unstructured"}, 
+\code{"fixed"}, and \code{"userdefined"}.  Any unique substring may be supplied.  
+ If \code{"fixed"} or \code{"userdefined"}, then \code{corr.mat} must be 
+ specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.}
 
 \item{Mv}{For \code{"m-dependent"}, the value for \code{m}.}
 
-\item{weights}{A vector of weights for each observation.  If an observation
-has weight 0, it is excluded from the calculations of any parameters.}
+\item{weights}{an optional vector of \sQuote{prior weights} to be used
+    in the fitting process.  Should be \code{NULL} or a numeric vector.}
 
 \item{corr.mat}{The correlation matrix for \code{"fixed"}.  Matrix should
-be symmetric with dimensions >= the maximum cluster size.  If the correlation 
-structure is \code{"userdefined"}, then this is a matrix describing which 
-correlations are the same.}
+ be symmetric with dimensions >= the maximum cluster size.  If the correlation 
+ structure is \code{"userdefined"}, then this is a matrix describing which 
+ correlations are the same.
+ 
+@param control A list of parameters for controlling the fitting process.}
 
-\item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
-an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
-\code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
-object.}
+\item{offset}{this can be used to specify an \emph{a priori} known
+    component to be included in the linear predictor during fitting.
+    This should be \code{NULL} or a numeric vector of length equal to
+    the number of cases.  One or more \code{\link[stats]{offset}} terms can be
+    included in the formula instead or as well, and if more than one is
+    specified their sum is used.  See \code{\link[stats]{model.offset}}.}
 
 \item{engine}{Engine used to fit the model. The default, \code{"geeasy"} uses this
 package (built on the \code{geeM} package), while \code{"geepack"} uses
@@ -70,57 +74,88 @@ the geepack engine is used, the data are sorted according to id (and possibly
 waves within id) and NAs are dropped before the data is used 
 (this differs from the standard in geepack).}
 
-\item{useP}{If set to \code{FALSE}, do not use the n-p correction for 
-dispersion and correlation estimates, as in Liang and Zeger. This can be 
-useful when the number of observations is small, as subtracting p may yield 
-correlations greater than 1.}
+\item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
+an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
+\code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
+object.}
+
+\item{control}{a list of parameters for controlling the fitting
+    process.  For \code{glm.fit} this is passed to
+    \code{\link[stats]{glm.control}}.}
 }
 \value{
-An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit. It contains
-the following slots:
-* \code{$coefficients}: Coefficients from the mean structure model (betas) on their 
+An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit. 
+It contains the following slots:
+
+\code{$coefficients}: Coefficients from the mean structure model (betas) on their 
 original scales
-* \code{$residuals}: Pearson residuals, in the order of the inputted dataset (with NAs omitted).
-* \code{$fitted.values}: Fitted values (response scale), in the order of the inputted dataset 
+
+\code{$residuals}: Pearson residuals, in the order of the inputted dataset (with NAs omitted).
+
+\code{$fitted.values}: Fitted values (response scale), in the order of the inputted dataset 
  (with NAs omitted).
-* \code{$rank}: The rank of the model matrix, i.e. the number of estimated mean structure
+ 
+\code{$rank}: The rank of the model matrix, i.e. the number of estimated mean structure
 coefficients.
-* \code{$qr}: QR decomposition of the model matrix (NA omitted). 
-* \code{$family}: A family object specifying which exponential family was used for fitting
+
+\code{$qr}: QR decomposition of the model matrix (NA omitted). 
+
+\code{$family}: A family object specifying which exponential family was used for fitting
 the mean structure model, see \code{\link{stats::family}} for more information. 
-* \code{$linear.predictors}: The linear predictor on the original scale.
-* \code{$weights}: Weights used for computations, in the order of the inputted dataset
+
+\code{$linear.predictors}: The linear predictor on the original scale.
+
+\code{$weights}: Weights used for computations, in the order of the inputted dataset
  (NAs omitted).
-* \code{$prior.weights}: The original weights used to produce this geeglm object (set
+ 
+\code{$prior.weights}: The original weights used to produce this geeglm object (set
 by user or defaulted to 1 for all observations).
-* \code{$df.residuals}: Residual degrees of freedom.
-* \code{$y}: Outcome variable, in the order of the inputted dataset (NAs omitted).
-* \code{$model}: The model.frame, ordered as the original inputted data with NAs omitted.
-* \code{$call}: The original function call that produced this geeglm object.
-* \code{$formula}: The formula used in the original call.
-* \code{$terms}: The terms of the formula used in the original call.
-* \code{$data}: The original dataset that was used for producing this geeglm object.
-* \code{$offset}: Offset used for fitting the model, ordered as the original inputted data
+
+\code{$df.residuals}: Residual degrees of freedom.
+
+\code{$y}: Outcome variable, in the order of the inputted dataset (NAs omitted).
+
+\code{$model}: The model.frame, ordered as the original inputted data with NAs omitted.
+
+\code{$call}: The original function call that produced this geeglm object.
+
+\code{$formula}: The formula used in the original call.
+
+\code{$terms}: The terms of the formula used in the original call.
+
+\code{$data}: The original dataset that was used for producing this geeglm object.
+
+\code{$offset}: Offset used for fitting the model, ordered as the original inputted data
 with NAs omitted.
-* \code{$control}: Value of control parameters used for fitting the model. 
-* \code{$method}: Internal function used for fitting the model.
-* \code{$contrasts}: Contrasts used in the model matrix.
-* \code{$xlevels}: Levels of factor variables used in the model formula (if any).
-* \code{$geese}: An object containing further information about the variance estimation, 
+
+\code{$control}: Value of control parameters used for fitting the model. 
+
+\code{$method}: Internal function used for fitting the model.
+
+\code{$contrasts}: Contrasts used in the model matrix.
+
+\code{$xlevels}: Levels of factor variables used in the model formula (if any).
+
+\code{$geese}: An object containing further information about the variance estimation, 
 including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated 
 coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion 
 parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See 
 \code{\link{geepack::geese}} for more information. 
-* \code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
+
+\code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
 and scale structures of the model. 
-* \code{$id}: IDs used for identifying the clusters, ordered as the original inputted data 
+
+\code{$id}: IDs used for identifying the clusters, ordered as the original inputted data 
 with NAs omitted.
-* \code{$corstr}: Name of the correlation structured imposed on the model. If the 
+
+\code{$corstr}: Name of the correlation structured imposed on the model. If the 
 correlation structure requires further information, it is stored in a suitably named
 attribute. For example, for m-dependent correlation structures, the m scalar is available
 in an attribute named \code{Mv}. 
-* \code{$cor.link}: Link function used for the correlation structure.
-* \code{$std.err}: Method used to estimate the standard error of the mean structure 
+
+\code{$cor.link}: Link function used for the correlation structure.
+
+\code{$std.err}: Method used to estimate the standard error of the mean structure 
 coefficients (betas).
 }
 \description{
@@ -130,24 +165,24 @@ generalized estimating equations.
 }
 \details{
 Users may specify functions for link and variance functions, but the
- functions must be vectorized functions.  See \code{\link{Vectorize}} for an easy
- way to vectorize functions.  \code{Vectorize} should be used sparingly, however, 
- as it can lead to fairly slow function calls.  Care must be taken to ensure
- that convergence is possible with non-standard functions.
- 
- Offsets must be specified in the model formula, as in glm.
+ functions must be vectorized functions. 
+   
+ Offsets can be specified in the model formula, as in \code{glm()} or they may be
+ specified using the \code{offset} argument. If offsets are specified in both ways, 
+ their sum is used as an offset.
  
  For the \code{"userdefined"} correlation option, the function accepts a 
- matrix with consecutive integers.  \code{geelm} only looks at the upper 
- triangle of the matrix.  Any entry given as 0 will be fixed at 0.  All
-  entries given as 1 will be assumed to be the same as each other and will 
-  be assumed to be possibly different from entries with a 2, and so on.
+ matrix with consecutive integers. Each such integer represent a distinct
+ parameter that will be estimated.  All entries given as 1 will be assumed
+  to be the same as each other and will be assumed to be possibly different 
+  from entries with a 2, and so on.\code{geelm} only looks at the upper 
+ triangle of the matrix.  Any entry given as 0 will be fixed at 0.  
   
  If observations are dropped because they have a weight of 0, then the 
  denominator for the moment estimates of the correlation matrices are 
  calculated using the number of non-zero Pearson residuals for the 
  correlation structures \code{unstructured}, \code{userdefined} and 
- \code{m-dependent} with \code{Mv>1}.  Therefore residuals numerically 
+ \code{m-dependent} with \code{Mv>1}.  Therefore, residuals numerically 
  equal to 0 may cause problems in the calculation of correlation parameters.
 
  Concerning the \code{family} argument: If the supplied argument is a character 
@@ -163,63 +198,15 @@ Users may specify functions for link and variance functions, but the
 }
 \examples{
 
-### Generated Negative Binomial Data
-generatedata <- function(beta,alpha,gamma,X,T,n)  {
-  mean.vec <- exp(crossprod(t(X),beta))
-  y <- matrix(0,nrow=n,ncol=T)
-  y[,1] <- rnbinom(n,mu = mean.vec[1],size=mean.vec[1]/gamma)
-  for (i in 1:n)  {
-      for (t in 2:T)  {
-          innovation.mean <- mean.vec[t] - alpha*(sqrt(mean.vec[t]*mean.vec[t-1]))
-          I <- rnbinom(1,mu= innovation.mean,size= innovation.mean/gamma)                              
-          first.shape <- alpha*sqrt(mean.vec[t]*mean.vec[t-1])/gamma
-          second.shape <- mean.vec[t-1]/gamma - first.shape
-          u <- rbeta(1,shape1 = first.shape,shape2=second.shape)
-          a <- rbinom(1,size=y[i,t-1],prob=u)
-          y[i,t] = a + I
-      }
-  }
-  longform <- c(t(y))
-  print(apply(y,2,mean))
-  simdata <- data.frame(count = longform, time = rep(X[,2],times=n),
-                        subject=rep(c(1:n),each=T))
-  return(simdata)
-  }
-  
-X <- cbind(rep(1,5),c(-.5,-.25,0,.25,.5))
-testdat <- generatedata(beta=c(1,.5),alpha=.2,gamma=.5,X=X,T=5,n=3000)
-far1 <- geelm(count~ time, id=subject ,data = testdat, family=poisson, 
-             corstr="ar1")
-             
-### Ohio respiratory data from geepack
- if(require(geepack)){
-     data("ohio", package="geepack")
-     resplogit <- geelm(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
-                       family = binomial, corstr = "m-dep" , Mv = 1)
-     LinkFun <- function(arg){qcauchy(arg)}
-     InvLink <- function(arg){pcauchy(arg)}
-     InvLinkDeriv <- function(arg){dcauchy(arg)}
-     VarFun <- function(arg){arg*(1-arg)}
-     FunList <- list(LinkFun, VarFun, InvLink, InvLinkDeriv)
-     
-     respcauchit <- geelm(resp ~ age + smoke + age:smoke, id=id, data = ohio, 
-                         family = FunList, corstr = "m-dep" , Mv=1)
-}
+# load data
+data("respiratory")
+respiratory$useid <- interaction(respiratory$center, respiratory$id)
 
-### Seizure data from geepack
-if(require(geepack)){
-    data("seizure", package="geepack")
-    seiz.l <- reshape(seizure,
-                      varying=list(c("base","y1", "y2", "y3", "y4")),
-                      v.names="y", times=0:4, direction="long")
-    seiz.l <- seiz.l[order(seiz.l$id, seiz.l$time),]
-    seiz.l$t <- ifelse(seiz.l$time == 0, 8, 2)
-    seiz.l$x <- ifelse(seiz.l$time == 0, 0, 1)
-    
-    seiz <- geelm(y~ x + trt + x:trt+ offset(log(t)), id=id,data = seiz.l, 
-                 family = poisson, corstr = "exchangeable")
-}
-
+# fit model
+m <- geelm(outcome ~ treat + sex + age + baseline, 
+           data = respiratory, id = useid,
+                      family = "binomial", corstr = "exchangeable")
+                      
 }
 \seealso{
 \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
