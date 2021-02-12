@@ -6,12 +6,14 @@ Version: 0.1
 Authors@R: c(person("Anne Helby", "Petersen", role = c("aut", "cre"),email = "ahpe@sund.ku.dk"),
       person("Lee", "McDaniel", role = "aut", comment = "Author of code taken from geeM"),
 			person("Nick", "Henderson", role = "aut", comment = "Author of code taken from geeM"),
-			person("Melanie", "Prague", role = "ctb",comment = "Contributed to geeM"))
+			person("Melanie", "Prague", role = "ctb",comment = "Contributed to geeM"),
+			person("Claus", "Ekstrom", role = "ctb", comment = "Wrote code for drop1 methods"))
 Date: 2021-02-10
 Author: Anne Helby Petersen [aut, cre],
   Lee McDaniel [aut],
   Nick Henderson [aut],
-  Melanie Prague [ctb] (Suggested code to fix weighting)
+  Melanie Prague [ctb] (Suggested code to fix weighting),
+  Claus Ekstrom [ctb] (Wrote code for drop1 methods)
 Maintainer: Anne Helby Petersen <ahpe@sund.ku.dk>
 Depends: Matrix, geepack
 Imports: stats, methods

@@ -4,25 +4,28 @@
 #' generalized linear models with clustered or correlated observations by use of 
 #' generalized estimating equations.  
 #' 
-#' @param formula A formula expression similar to that for \code{\link{glm}}, 
-#' of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
+#' @inheritParams stats::glm
 #' 
-#' @param id A vector identifying the clusters. By default, data are assumed 
+# #' @param formula A formula expression similar to that for \code{\link{glm}}, 
+# #' of the form \code{response~predictors}.  An offset is allowed, as in \code{glm}.
+#' 
+#' @param id A vector identifying the clusters. If NULL, then each observation is 
+#' assigned its own cluster.
+#' 
+#' @param waves An numeric vector identifying the time ordering within clusters 
+#' (i.e. levels of \code{id}). By default, data are assumed 
 #' to be sorted such that observations in a cluster are in consecutive rows 
-#' and higher numbered rows in a cluster are assumed to be later.  
-#' If NULL, then each observation is assigned its own cluster.
-#' 
-#' @param waves An integer vector identifying the time ordering within clusters 
-#' (i.e. levels of \code{id}). Note that only the ordering is used, NOT the 
-#' numeric values of the wave. This means that non-equidistant time points are
-#' not being used for fitting in e.g. AR1. 
+#' and higher numbered rows in a cluster are assumed to be later. Note that only the 
+#' ordering of the values in \code{waves} is used, NOT the numeric values themselves. 
+#' This means that e.g. having waves equal to \code{c(1, 2, 3)} 
+#' or \code{c(1, 2, 7)} within a cluster results in the same model.
 #' 
 #' @param data An optional data frame containing the variables in the model.
 #' 
-#' @param family Will determine the link and variance functions.  The argument 
-#' can be one of three options: a \code{family} object, a character string,
-#'  or a list of functions. For more information on how to use \code{family} 
-#'  objects, see details below. 
+# #' @param family Will determine the link and variance functions.  The argument 
+# #' can be one of three options: a \code{family} object, a character string,
+# #'  or a list of functions. For more information on how to use \code{family} 
+# #'  objects, see details below. 
 #'  
 #' @param corstr A character string specifying the correlation structure.  
 #'  Allowed structures are: \code{"independence"}, \code{"exchangeable"}, 
@@ -33,18 +36,13 @@
 #'  
 #' @param Mv For \code{"m-dependent"}, the value for \code{m}. 
 #'  
-#' @param weights A vector of weights for each observation.  If an observation
-#'   has weight 0, it is excluded from the calculations of any parameters.  
+# #' @param weights A vector of weights for each observation.  If an observation
+# #'   has weight 0, it is excluded from the calculations of any parameters.  
 #'    
 #' @param corr.mat The correlation matrix for \code{"fixed"}.  Matrix should
 #'   be symmetric with dimensions >= the maximum cluster size.  If the correlation 
 #'   structure is \code{"userdefined"}, then this is a matrix describing which 
 #'   correlations are the same.
-#'    
-#' @param useP If set to \code{FALSE}, do not use the n-p correction for 
-#'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
-#'    useful when the number of observations is small, as subtracting p may yield 
-#'    correlations greater than 1.
 #'    
 #' @param output Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
 #' an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
@@ -59,24 +57,24 @@
 #' (this differs from the standard in geepack).
 #'     
 #' @details Users may specify functions for link and variance functions, but the
-#'  functions must be vectorized functions.  See \code{\link{Vectorize}} for an easy
-#'  way to vectorize functions.  \code{Vectorize} should be used sparingly, however, 
-#'  as it can lead to fairly slow function calls.  Care must be taken to ensure
-#'  that convergence is possible with non-standard functions.
-#'  
-#'  Offsets must be specified in the model formula, as in glm.
+#'  functions must be vectorized functions. 
+#'    
+#'  Offsets can be specified in the model formula, as in \code{glm()} or they may be
+#'  specified using the \code{offset} argument. If offsets are specified in both ways, 
+#'  their sum is used as an offest.
 #'  
 #'  For the \code{"userdefined"} correlation option, the function accepts a 
-#'  matrix with consecutive integers.  \code{geelm} only looks at the upper 
-#'  triangle of the matrix.  Any entry given as 0 will be fixed at 0.  All
-#'   entries given as 1 will be assumed to be the same as each other and will 
-#'   be assumed to be possibly different from entries with a 2, and so on.
+#'  matrix with consecutive integers. Each such integer represent a distinct
+#'  parameter that will be estimated.  All entries given as 1 will be assumed
+#'   to be the same as each other and will be assumed to be possibly different 
+#'   from entries with a 2, and so on.\code{geelm} only looks at the upper 
+#'  triangle of the matrix.  Any entry given as 0 will be fixed at 0.  
 #'   
 #'  If observations are dropped because they have a weight of 0, then the 
 #'  denominator for the moment estimates of the correlation matrices are 
 #'  calculated using the number of non-zero Pearson residuals for the 
 #'  correlation structures \code{unstructured}, \code{userdefined} and 
-#'  \code{m-dependent} with \code{Mv>1}.  Therefore residuals numerically 
+#'  \code{m-dependent} with \code{Mv>1}.  Therefore, residuals numerically 
 #'  equal to 0 may cause problems in the calculation of correlation parameters.
 #' 
 #'  Concerning the \code{family} argument: If the supplied argument is a character 
@@ -212,74 +210,109 @@ geelm <- function(formula, id, waves=NULL, data = parent.frame(),
                  control = geelm.control(),
                  engine = "geeasy"){
   
-  ########################################################################
-  #Check and prep input arguments ########################################
-  ########################################################################
+  #########################################################################################
+  #Check and handle input arguments #######################################################
+  #########################################################################################
+  
   thiscall <- match.call()
   
-  ### First, get all the relevant elements from the arguments
+  ########################################################################
+  # Handle correlation structure arguments
+  ########################################################################
+  cor.vec <- c("independence", "ar1", "exchangeable", "m-dependent", 
+               "unstructured", "fixed", "userdefined")
+  corstr <- cor.vec[charmatch(corstr, cor.vec)]
+  if (length(corstr) == 0) {
+    stop("Ambiguous correlation structure specification")
+  } else if (is.na(corstr)) {
+    stop("Unsupported correlation structure")
+  } 
+  
+  # Add extra info to corstr if necessary. These are stored as attributes. 
+  if (corstr == "m-dependent") {
+    if (!is.numeric(Mv) || !length(Mv) == 1 || round(Mv, 0)! = Mv || Mv < 0) {
+      stop("Mv must be an integer")
+    }
+    attr(corstr, "Mv") <- Mv
+  } else if (corstr %in% c("fixed", "userdefined")) {
+    if (!is.matrix(corr.mat)) {
+      stop(paste("A matrix must be supplied as corr.mat for",
+                 corstr, "correlation structure."))
+    }
+    attr(corstr, "corr.mat") <- corr.mat
+  }
+  
+  ########################################################################
+  # Handle data & variable arguments
+  ########################################################################
+  
   dat <- model.frame(formula, data, na.action = na.pass)
   nn <- dim(dat)[1]
   
-  #Make id / weight / waves argument so that they can match character
-  #strings OR names provided in enclosing environment/data
-  #??? doesn't work with character strings??? 
-  if(typeof(data) != "environment") {
-    if(length(thiscall$id) == 1){
-      subj.col <- which(colnames(data) == thiscall$id)
-      if(length(subj.col) > 0){
-        id <- data[,subj.col]
-      } else {
-        id <- eval(thiscall$id, envir=parent.frame())
-      }
-    } else if(is.null(thiscall$id)) {
-      id <- 1:nn
+  #Make id/weight/waves/offset argument so that they match in the following
+  #prioritized order:
+  #1) Look in data (as name)
+  #2) Look in calling environment
+  #3) Look in data (as character string)
+  
+    # Look up id. If none are supplied, assign unique id to each 
+    # observation
+    if (!is.null(thiscall$id)) {
+      dat$id <- lookup_var_arg(thiscall$id, data, "id")
+    } else {
+      dat$id <- 1:nn
     }
-    
-    if(length(thiscall$weights) == 1) {
-      weights.col <- which(colnames(data) == thiscall$weights)
-      if(length(weights.col) > 0) {
-        weights <- data[,weights.col]
-      } else {
-        weights <- eval(thiscall$weights, envir=parent.frame())
-      }
-    } 
-    
-    if(length(thiscall$waves) == 1) {
-      waves.col <- which(colnames(data) == thiscall$waves)
-      if(length(waves.col) > 0) {
-        waves <- data[,waves.col]
-      } else {
-        waves <- eval(thiscall$waves, envir=parent.frame())
-      }
-    } else if(is.null(thiscall$waves)) {
-      waves <- NULL
+  
+    # Look up weights. If none are supplied, assign 1 to each 
+    #observation
+    if (!is.null(thiscall$weights)) {
+      dat$weights <- lookup_var_arg(thiscall$weights, data, "weights")
+      if (!is.numeric(weights)) stop("weights must be numeric or NULL") 
+    } else {
+      dat$weights <- rep(1, nn)
     }
-  }
   
-  # Initialize weights if not supplied by user
-  if (is.null(weights)) weights <- rep(1, nn)
+    # Look up waves. If waves are supplied, check that they are numeric. 
+    # If no waves are supplied, don't do anything. 
+    # Note: if waves are NULL nothing is stored in data. This is 
+    # unproblematic as waves slot in data is only accessed when 
+    # use_waves is TRUE. 
+    if (!is.null(thiscall$waves)) {
+      dat$waves <- lookup_var_arg(thiscall$waves, data, "waves")
+      if (!is.numeric(waves)) stop("waves must be numeric or NULL") 
+      use_waves <- TRUE
+    } else {
+      use_waves <- FALSE
+    }
   
-  # Check waves argument
-  if (!is.null(waves) && !identical(round(waves, 0), waves)) stop("waves must be either an integer vector or NULL") 
+    # Look up offset. If offsets are supplied, check that they are numeric.
+    # If none are supplied, assign 0 to each 
+    # observation
+    if (!is.null(thiscall$offset)) {
+      dat$offset <- lookup_var_arg(thiscall$offset, data, "offset")
+      if (!is.numeric(offset)) stop("offset must be numeric or NULL") 
+    } else {
+      dat$offset <- rep(0, nn)
+    }
+ 
+  # Store objects that we will need for final output
+  prior.weights <- dat$weights
   
   
-  # Store objects for output
-  prior.weights <- weights
+  #########################################################################################
+  # Prep data #############################################################################
+  #########################################################################################
   
-  
-  # Organize all dataset in dat
-  dat$id <- id
-  dat$weights <- weights
-  dat$waves <- waves #!!! this may be NULL => not controlled what slots are available in dat
-
+  ########################################################################
+  # Sort data & apply waves
+  ########################################################################
   
   # Sort data. If waves are available, sort accord to id and waves, otherwise 
   # sort only according to id
-  if (!is.null(waves)) {
-    neworder <- order(id, waves)
+  if (use_waves) {
+    neworder <- order(dat$id, dat$waves)
   } else {
-    neworder <- order(id)
+    neworder <- order(dat$id)
   }
   dat <- dat[neworder, ] 
   
@@ -287,15 +320,23 @@ geelm <- function(formula, id, waves=NULL, data = parent.frame(),
   # values of waves now, as data have already been sorted according to waves within ids.
   # If the waves are not equidistant, signal a warning and proceed as if they were 
   # equidistant (i.e. use only order information - this has already been done in sorting)
-  if (!is.null(waves)) {
+  if (use_waves) {
     waves_are_equidist <- by(dat$waves, as.factor(dat$id), is_equidistant)
     if (any(!waves_are_equidist)) {
       warning(paste("Non-equidistant waves were provided.",
                     "Note that only their ordering was used for model fitting.",
                     "Their numeric values were ignored."))
     }
+    
+    #remove waves from data: they have served their purpose, no need to carry them
+    #around any longer 
+    dat$waves <- NULL
   }
   
+  
+  ########################################################################
+  # Handle missing information
+  ########################################################################
   
   # Find missing information in variables used for the linear predictor and response
   # note: na.inds contains information on both row and columns of NAs - both are needed below. 
@@ -303,26 +344,6 @@ geelm <- function(formula, id, waves=NULL, data = parent.frame(),
   if(any(is.na(dat))){
     na.inds <- which(is.na(dat), arr.ind = TRUE)
   }
-  
-  # Figure out the correlation structure
-  cor.vec <- c("independence", "ar1", "exchangeable", "m-dependent", "unstructured", 
-               "fixed", "userdefined")
-  corstr <- cor.vec[charmatch(corstr, cor.vec)]
-  
-  #!!!to do:
-  # - add step to change corstr if settings simplify (for example "m-dependent" and Mv == 1 => "ar1"?)
-  
-  #!!! to do:
-  #!!! check what happens if length(cor.str) > 1 and check what happens if there is no match (old code below
-  # NOT replaced yet):
-  #*#  if(is.na(cor.match)){stop("Unsupported correlation structure")} #!!check if this still works
-  #*#
-  #*#   else if(cor.match == 0){
-  #*#         stop("Ambiguous Correlation Structure Specification")
-  #*#   }else{ 
-  #*#   stop("Unsupported Correlation Structure")
-  #*#   }
-  
   
 
   # Note that we need to assign weight 0 to rows with NAs
@@ -389,13 +410,6 @@ geelm <- function(formula, id, waves=NULL, data = parent.frame(),
   }
   
 
-  
-  # add extra info to corstr if necessary. These are stored as attributes. 
-  if (corstr == "m-dependent") {
-    attr(corstr, "Mv") <- Mv
-  } else if (corstr %in% c("fixed", "userdefined")) {
-    attr(corstr, "corr.mat") <- corr.mat
-  }
   
   # handle family argument
   famret <- getfam(family)
@@ -593,6 +607,31 @@ geelm <- function(formula, id, waves=NULL, data = parent.frame(),
 #####################################################################################
 ## Not exported below
 #####################################################################################
+
+#Find variable names or expressions using variable names or plain vectors
+#in data or calling environment
+lookup_var_arg <- function(arg, data, name = NULL) {
+  #First: Look for arg in data, and if not found there,
+  #look in calling environment (grandparent frame of this function, hence 
+  # n = 2)
+  out <- eval(arg, envir = data, 
+              enclos = parent.frame(n = 2)) 
+  
+  #If arg were not found in data/calling env, out will now 
+  #just be a character string with the contents of arg. Hence it will 
+  #have length 1. In this case, we will try to look for arg among the 
+  #variable names in the data
+  if (length(out) == 1) {
+    out <- get(arg, envir = as.environment(data))
+  }
+  
+  #If we still haven't found a variable in the data, raise error
+  if (length(out) != nrow(data)) {
+    stop(paste("Invalid"), ifelse(is.null(name), "argument", name))
+  }
+  
+  out
+}
 
 ### Simple moment estimator of dispersion parameter
 #' @import Matrix

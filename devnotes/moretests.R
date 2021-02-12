@@ -258,3 +258,68 @@ m_eng_geepack_scrambled
 m_eng_geepack_ordered
 m_eng_geepack_scrambled
   #Success: Identical results
+
+
+
+####################################################################################
+## Test that geelm finds weights/waves/id in data, in global env
+####################################################################################
+
+set.seed(123)
+exdat <- data.frame(x = rnorm(20))
+exdat$y <- exdat$x + rnorm(20) 
+exdat$thisid <- rep(1:5, each = 4)
+exdat$ws <- rep(seq(0.1, 1, 0.1), 2)
+exdat$time <- rep(1:4, 5)
+
+global_id <- exdat$thisid
+global_ws <- exdat$ws
+global_time <- exdat$time
+
+# Test: Model with id/weights/waves given as names from data (unquoted)
+geelm(y ~ x, data = exdat, 
+      id = thisid, 
+      weights = ws, 
+      waves = time,
+      corstr = "ar1")
+  #works!
+
+# Test: Model with id/weights/waves given as names from data (quoted)
+geelm(y ~ x, data = exdat, 
+      id = "thisid")#, 
+  #    weights = "ws", 
+  #    waves = "time",
+   #   corstr = "exchangeable")
+  #works!
+
+# Test: Model with id/weights/waves given as variables from global env
+geelm(y ~ x, data = exdat, 
+      id = global_id, 
+      weights = global_ws, 
+      waves = global_time,
+      corstr = "exchangeable")
+  #works!
+
+# Test: Model with id/weights/waves given as expressions using names from data
+geelm(y ~ x, data = exdat, 
+      id = thisid + 2, 
+      weights = ws + 2, 
+      waves = time + 2, 
+      corstr = "exchangeable")
+
+# Test: Model with id/weights/waves given as expressions without names from data
+geelm(y ~ x, data = exdat,
+      id = rep(1:5, each = 4),
+      weights = rep(seq(0.1, 1, 0.1), 2),
+      waves = rep(1:4, 5),
+      corstr = "exchangeable")
+
+debugonce(geelm)
+
+
+
+
+
+
+
+

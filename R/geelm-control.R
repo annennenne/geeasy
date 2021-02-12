@@ -1,5 +1,9 @@
 
-#'
+#' @param useP If set to \code{FALSE}, do not use the n-p correction for 
+#'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
+#'    useful when the number of observations is small, as subtracting p may yield 
+#'    correlations greater than 1.
+#'    
 #' @export
 geelm.control <- function(#init.alpha = NULL, 
                          init.beta = NULL, init.phi = 1,
