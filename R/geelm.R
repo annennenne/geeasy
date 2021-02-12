@@ -219,6 +219,7 @@ geelm <- function(formula, id = NULL, waves = NULL, data = parent.frame(),
     if (!is.matrix(corr.mat)) {
       stop(paste("A matrix must be supplied as corr.mat for",
                  corstr, "correlation structure."))
+      #note: further validity checking is done by geelm.fit()
     }
     attr(corstr, "corr.mat") <- corr.mat
   }

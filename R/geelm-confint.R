@@ -1,6 +1,16 @@
-#Compute Wald confidence intervals for mean structure parameters of geeglm object
+#' Confidence Intervals for geelm objects
+#' 
+#' Compute Wald confidence intervals for mean structure parameters of geelm object.
+#' 
+#' @inheritParams stats::confint
+#' 
+#' @param std.err Which standard error estimation method that should be used for 
+#' computing the confidence intervals. Only "san.se" is supported for geelm objects but
+#' "jack", "j1s" or "fij" may be used for geeglm objects (if they have been estimated
+#' when fitting the model). 
+#' 
 #' @export
-confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "sandwich") {
+confint.geelm <- function(object, parm = NULL, level = 0.95, std.err = "san.se") {
   betas <- object$coefficients
   if (std.err %in% c("san.se", "sandwich")) {
     v_betas <- object$geese$vbeta
@@ -29,4 +39,12 @@ confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "sandwic
   }
   
   out  
+}
+
+
+#' @describeIn confint.geelm
+#' 
+#' @export
+confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "san.se") {
+  confint.geelm(object = object, parm = parm, level = level, std.err = std.err)
 }

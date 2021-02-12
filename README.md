@@ -67,7 +67,7 @@ getGEE(m, "alpha")
 
 This function was built to resemble the `getME()` functin from `lme4`. Note that it can also be accessed by calling `getME()`. 
 
-**`plot()``**:
+**`plot()`**:
 ```{r}
 # Plot estimates and 95% confidence intervals for one geelm model
 plot(m)
@@ -109,13 +109,13 @@ Note that this does **not** mean that the id variable is handled as in `geepack`
 
 ## Credit
 
-The `geeasy` package is a modified version of the `geeM` package and the main estimation code was hence written by Lee McDaniel and Nick Henderson. 
+The `geeasy` package is based on a modified version of the `geeM` package and the main estimation code was hence written by Lee McDaniel and Nick Henderson. 
 
 The package was modified, updated and extended by Anne Helby Petersen. 
 
 Claus Ekstrøm has contributed with additional code. 
 
-Claus Ekstrøm and Søren Højsgaard are maintainers of the package. 
+Søren Højsgaard and Claus Ekstrøm are maintainers of the package. 
 
 
 ## Bugs & requests

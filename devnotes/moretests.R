@@ -85,8 +85,9 @@ summary(m)
 predict(m)
 predict(m, newdata = data.frame(treat = c("A", "P")))
 
-#confint (NEW!)
+#confint
 confint(m)
+confint(mgp)
 
 #drop1
  drop1(m2)

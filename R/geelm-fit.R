@@ -1,4 +1,4 @@
-#' @alias geelm
+#' @describeIn geelm
 #' 
 #' @export
 geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,

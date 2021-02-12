@@ -1,8 +1,19 @@
-
+#' Control estimation of GEEs
+#' 
+#' Settings for controlling technical details of GEE fitting via geelm. 
+#' 
+#' @inheritParams geepack::geese.control
+#' @inheritParams geeM::geem
+#' 
+#' @param tol Tolerance for asserting convergence. 
+#' 
 #' @param useP If set to \code{FALSE}, do not use the n-p correction for 
 #'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
 #'    useful when the number of observations is small, as subtracting p may yield 
 #'    correlations greater than 1.
+#'    
+#' @param std.err Character string specifying which standard error estimation method
+#' should be used. Supported options are "san.se" (sandwich SE) and "naive". 
 #'    
 #' @export
 geelm.control <- function(#init.alpha = NULL, 

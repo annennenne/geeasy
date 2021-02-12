@@ -122,46 +122,20 @@ for (i in 1:nrow(res)) {
 }
 
 
-if (FALSE) {
 
-debugonce(geem2)
-mm_gm2 <- geelm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1, 
-                 data = resp, 
-                 id = with(resp, interaction(center, id)),
-                     family = "binomial", corstr = "unstructured",
-                output = "geeglm")#,
-                   #  waves = theseWaves,
-#                     weights = weights1)
-
-mm_gp <- geeglm(outcome ~ baseline + center + sex + age + I(age^2) + treat, #wmiss1,
-                data = resp[, #complete.cases(resp$treatwmiss1), 
-                            c("outcome", "baseline","sex", "age", "treat", #wmiss1", 
-                              "id", "center")],#, "weights1")], 
-              id = interaction(center, id),
-              family = "binomial", corstr = "unstructured")#, 
-          #    waves = theseWaves[complete.cases(resp)],
-             # weights = weights1)
-
-geepack:::summary.geeglm(mm_gm2)
-geepack:::summary.geeglm(mm_gp)
-debugonce(geepack:::summary.geeglm)
-debugonce(geepack:::print.geeglm)
-debugonce(geepack:::print.summary.geeglm)
-debugonce(geem.fit)
-debugonce(geem2)
-
-predict(mm_gm2) - predict(mm_gp) < 0.01
-
-summary(mm_gp)
+############# Look at results
 
 
-mm_gp$model
-mm_gp$contrasts
-mm_gp$xlevels
+#Look at combos with error for dev but not original
+res[res$error_new & !res$error_original,] #none! 
 
-nstop <- 0
-for (i in 1:nstop) {
-  print(i)
-}
+#Look at combos with error for original, but not dev
+res[!res$error_new & res$error_original, c("corstr", "weights", "treat", "waves")] 
 
-}
+#Look at combos with error for original
+View(res[res$error_original, c("corstr", "weights", "treat", "waves")]) 
+
+
+#Look at combos without error for original where results are not identical
+View(res[!res$error_original & !res$identical,])
+
