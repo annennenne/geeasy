@@ -278,8 +278,28 @@ geelm(y ~ x, data = exdat,
 
 
 
+####################################################################################
+## Minimal benchmarking example
+####################################################################################
 
+library(microbenchmark)
+data("respiratory")
+respiratory$useid <- with(respiratory, interaction(center, id))
 
+#benchmark
+microbenchmark(geeasy = geelm(outcome ~ treat + sex + age + baseline, 
+                              data = respiratory,
+                              id = useid,
+                              family = "binomial", corstr = "exchangeable"),
+               `geepack (as engine)` = geelm(outcome ~ treat + sex + age + baseline, 
+                                             data = respiratory,
+                                             id = useid,
+                                             family = "binomial", corstr = "exchangeable",
+                                             engine = "geepack"),
+              `geepack (native)` = geeglm(outcome ~ treat + sex + age + baseline, 
+                                          data = respiratory,
+                                          id = useid,
+                                          family = "binomial", corstr = "exchangeable"))
 
-
+  #geeasy is approx. factor 2 slower than geepack when both sort data
 
