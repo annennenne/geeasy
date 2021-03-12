@@ -26,6 +26,7 @@
 #' drop1(fit)
 #'
 #' @import geepack
+#' @importFrom stats coef drop.scope formula model.matrix pchisq qnorm terms update.formula
 #' @export
 drop1.geeglm <- function(object, scope, test = c("Wald", "none", "score", "sasscore"),
                          method=c("robust", "naive", "sandwich"), ...) {
@@ -130,6 +131,7 @@ drop1.geeglm <- function(object, scope, test = c("Wald", "none", "score", "sassc
 #' }
 #'
 #' @import geeM
+#' @importFrom stats coef formula model.matrix pchisq qnorm terms update.formula
 #' @export
 drop1.geem <- function(object, scope, test = c("Wald", "none", "score", "sasscore"),
                        method=c("robust", "naive", "sandwich"), ...) {
@@ -203,6 +205,7 @@ drop1.geem <- function(object, scope, test = c("Wald", "none", "score", "sasscor
 }
 
 
+#' @importFrom stats coef formula model.matrix pchisq qnorm terms update.formula
 drop1.geese <- function(object, scope, test = c("Wald", "none"),
                         method=c("robust", "naive", "sandwich"), ...) {
   test <- match.arg(test)

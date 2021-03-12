@@ -22,6 +22,7 @@ getUserStructure <- function(corr.mat){
 
 
 ### Get the inverse correlation matrix for USERDEFINED.
+#' @importFrom methods as
 getAlphaInvUser <- function(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec){
   K <- length(len)
   ml <- max(len)

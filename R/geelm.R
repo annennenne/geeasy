@@ -160,14 +160,14 @@
 #' 
 #' \code{$std.err}: Method used to estimate the standard error of the mean structure 
 #' coefficients (betas).
-
 #' 
 #' @author Anne Helby Petersen, Lee McDaniel & Nick Henderson
 #' 
 #' @seealso \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
 #' 
 #' @keywords models robust
-#' 
+#'
+#' @importFrom stats complete.cases gaussian model.frame model.offset model.response na.omit na.pass 
 #' @examples
 #' 
 #' # load data

@@ -69,7 +69,8 @@
 #' 
 #' @importFrom ggplot2 ggplot aes_string geom_point position_dodge coord_flip 
 #'  scale_x_discrete ylab scale_color_manual geom_errorbar
-#'  
+#'
+#' @importFrom stats confint
 #' @export
 plotEst <- function(..., intercept = TRUE, par = NULL, colors = NULL) {
   innames <- sapply(substitute(list(...))[-1], deparse)
