@@ -5,9 +5,9 @@
 \alias{confint.geeglm}
 \title{Confidence Intervals for geelm objects}
 \usage{
-\method{confint}{geelm}(object, parm = NULL, level = 0.95, std.err = "san.se")
+\method{confint}{geelm}(object, parm = NULL, level = 0.95, std.err = "san.se", ...)
 
-\method{confint}{geeglm}(object, parm = NULL, level = 0.95, std.err = "san.se")
+\method{confint}{geeglm}(object, parm = NULL, level = 0.95, std.err = "san.se", ...)
 }
 \arguments{
 \item{object}{a fitted model object.}
@@ -22,6 +22,8 @@
 computing the confidence intervals. Only "san.se" is supported for geelm objects but
 "jack", "j1s" or "fij" may be used for geeglm objects (if they have been estimated
 when fitting the model).}
+
+\item{...}{additional argument(s) for methods.}
 }
 \description{
 Compute Wald confidence intervals for mean structure parameters of geelm object.

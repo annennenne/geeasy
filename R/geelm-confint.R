@@ -10,7 +10,7 @@
 #' when fitting the model). 
 #' 
 #' @export
-confint.geelm <- function(object, parm = NULL, level = 0.95, std.err = "san.se") {
+confint.geelm <- function(object, parm = NULL, level = 0.95, std.err = "san.se", ...) {
   betas <- object$coefficients
   if (std.err %in% c("san.se", "sandwich")) {
     v_betas <- object$geese$vbeta
@@ -45,6 +45,6 @@ confint.geelm <- function(object, parm = NULL, level = 0.95, std.err = "san.se")
 #' @describeIn confint.geelm
 #' 
 #' @export
-confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "san.se") {
-  confint.geelm(object = object, parm = parm, level = level, std.err = std.err)
+confint.geeglm <- function(object, parm = NULL, level = 0.95, std.err = "san.se", ...) {
+  confint.geelm(object = object, parm = parm, level = level, std.err = std.err, ...)
 }
