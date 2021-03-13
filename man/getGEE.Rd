@@ -5,7 +5,7 @@
 \alias{getME}
 \title{Get information for a geelm/geeglm object}
 \usage{
-getGEE(object, name)
+getGEE(object, name, ...)
 
 getME(object, name, ...)
 }
@@ -15,6 +15,8 @@ or a geelm object as obtained from \code{geeasy::geelm()}}
 
 \item{name}{Name of the slot/component of the geelm/geeglm object that should be returned.
 See list of possible names in details below.}
+
+\item{...}{Any additional arguments passed on to other functions.}
 }
 \description{
 Get information for a geelm/geeglm object
@@ -34,7 +36,7 @@ original scales
 coefficients.
 
 \code{family}: A family object specifying which exponential family was used for fitting
-the mean structure model, see \code{\link{stats::family}} for more information. 
+the mean structure model, see \code{\link{stats:::family}} for more information. 
 
 \code{linear.predictors}: The linear predictor on the original scale.
 

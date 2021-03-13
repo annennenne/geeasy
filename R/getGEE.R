@@ -6,6 +6,8 @@
 #' @param name Name of the slot/component of the geelm/geeglm object that should be returned.
 #' See list of possible names in details below.
 #' 
+#' @param ... Any additional arguments passed on to other functions.
+#' 
 #' @details The allowed names are:
 #' 
 #' \code{coefficients} or \code{beta}: Coefficients from the mean structure model (betas) on their 
@@ -20,7 +22,7 @@
 #' coefficients.
 #' 
 #' \code{family}: A family object specifying which exponential family was used for fitting
-#' the mean structure model, see \code{\link{stats::family}} for more information. 
+#' the mean structure model, see \code{\link{stats:::family}} for more information. 
 #' 
 #' \code{linear.predictors}: The linear predictor on the original scale.
 #' 
@@ -47,7 +49,7 @@
 #' \code{nclusters}: The total number of clusters. 
 #' 
 #' @export
-getGEE <- function(object, name) {
+getGEE <- function(object, name, ...) {
   
   # All supported names that are slots in geelm/geeglm object
   geelm_slots <- c("coefficients", "beta",
