@@ -126,7 +126,7 @@ coefficients.
 \code{$qr}: QR decomposition of the model matrix (NA omitted). 
 
 \code{$family}: A family object specifying which exponential family was used for fitting
-the mean structure model, see \code{\link{stats::family}} for more information. 
+the mean structure model, see \code{\link{family}} for more information. 
 
 \code{$linear.predictors}: The linear predictor on the original scale.
 
@@ -165,7 +165,7 @@ with NAs omitted.
 including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated 
 coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion 
 parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See 
-\code{\link{geepack::geese}} for more information. 
+\code{\link{geese}} for more information. 
 
 \code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
 and scale structures of the model. 

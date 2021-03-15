@@ -1,5 +1,6 @@
 #' @describeIn geelm
-#' 
+#'
+#' @importFrom stats glm.fit
 #' @export
 geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
                       start = NULL) {

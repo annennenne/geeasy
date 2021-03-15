@@ -22,7 +22,7 @@
 #' coefficients.
 #' 
 #' \code{family}: A family object specifying which exponential family was used for fitting
-#' the mean structure model, see \code{\link{stats:::family}} for more information. 
+#' the mean structure model, see \code{\link{family}} for more information. 
 #' 
 #' \code{linear.predictors}: The linear predictor on the original scale.
 #' 
