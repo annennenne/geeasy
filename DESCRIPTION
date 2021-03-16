@@ -15,7 +15,7 @@ Author: Anne Helby Petersen [aut, cre],
   Melanie Prague [ctb] (Suggested code to fix weighting),
   Claus Ekstrom [ctb] (Wrote code for drop1 methods)
 Maintainer: Anne Helby Petersen <ahpe@sund.ku.dk>
-Depends: Matrix, geepack, stats
+Depends: Matrix, geepack, stats, MESS, lme4
 Imports: ggplot2, geeM, methods
 Suggests: testthat, MuMIn
 Description: Estimation of generalized linear models with correlated/clustered observations

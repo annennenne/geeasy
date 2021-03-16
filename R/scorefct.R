@@ -5,13 +5,17 @@
 #' @param testidx Indices of the beta parameters that should be tested equal to zero
 #' @param sas Logical. Should the SAS version of the score test be computed. Defaults to \code{FALSE}.
 #' @author Claus Ekstrom \email{claus@@rprimer.dk}
+#' @importFrom MESS qdiag
 #' @keywords manip
 scorefct <- function(o, beta=NULL, testidx=NULL, sas=FALSE) {
 
+#
+#   Should be necessary any more
+#
     # Check that ids are correctly ordered
-    if (!ordered.clusters(o$id)) {
-        stop("clusters in the gee model are not ordered and contiguous. They really should be since otherwise geepack will consider non-contiguous clusters with same id as different. Reorder your dataset or redefine the cluster id variable and run the gee fit again.")
-    }
+#    if (!ordered.clusters(o$id)) {
+#        stop("clusters in the gee model are not ordered and contiguous. They really should be since otherwise geepack will consider non-contiguous clusters with same id as different. Reorder your dataset or redefine the cluster id variable and run the gee fit again.")
+#    }
 
     if (any(o$weights != 1)) {
         stop("Haven't thought about if there is a problem with weights so will not do any computations")
@@ -86,4 +90,10 @@ scorefct <- function(o, beta=NULL, testidx=NULL, sas=FALSE) {
             as.numeric(t(S[testidx]) %*% invert( myvar ) %*% S[testidx])
         }
     }
+}
+
+
+
+sinv <- function(obj) {
+    return(chol2inv(chol(obj)))
 }
