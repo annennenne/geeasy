@@ -15,8 +15,8 @@ Author: Anne Helby Petersen [aut, cre],
   Melanie Prague [ctb] (Suggested code to fix weighting),
   Claus Ekstrom [ctb] (Wrote code for drop1 methods)
 Maintainer: Anne Helby Petersen <ahpe@sund.ku.dk>
-Depends: Matrix, geepack, stats, MESS, lme4
-Imports: ggplot2, geeM, methods
+Depends: Matrix, geepack, stats
+Imports: ggplot2, geeM, lme4, methods, MESS
 Suggests: testthat, MuMIn
 Description: Estimation of generalized linear models with correlated/clustered observations
     by use of generalized estimating equations (GEE). Several types of clustering are supported,
