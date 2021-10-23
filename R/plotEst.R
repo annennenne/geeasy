@@ -1,22 +1,23 @@
-#' @title Plot parameter estimates with 95 \% confidence intervals 
+#' @title Plot parameter estimates with 95 pct confidence intervals. 
 #' 
-#' @description
-#' Parameter estimates are plotted along with error bars indicating 95 \% 
-#' confidence intervals. 
+#' @description Parameter estimates are plotted along with error bars
+#'     indicating 95 pct confidence intervals.
 #' 
-#' @details 
-#' One or more models can be supplied, and if the parameters
-#' have the same names across models, they will be grouped together allowing for
-#' easy comparison. 
+#' @details
+#' One or more models can be supplied, and if the parameters have the
+#'     same names across models, they will be grouped together
+#'     allowing for easy comparison.
 #' 
-#' Note that models can be given with or without names. If names are supplied (see
-#' example below), these are printed in the plot legend. Otherwise, the name of the 
-#' model object is printed there instead.
+#' Note that models can be given with or without names. If names are
+#' supplied (see example below), these are printed in the plot
+#' legend. Otherwise, the name of the model object is printed there
+#' instead.
 #' 
-#' Implementation details: As a default, the estimates are extracted from the 
-#' \code{$coefficients} slot from the model object and confidence intervals are 
-#' computed by calling \code{confint()}. This means that \code{plotEst} supports
-#' all models that have a \code{coefficents} slot and a \code{confint} method. 
+#' Implementation details: As a default, the estimates are extracted
+#' from the \code{$coefficients} slot from the model object and
+#' confidence intervals are computed by calling \code{confint()}. This
+#' means that \code{plotEst} supports all models that have a
+#' \code{coefficents} slot and a \code{confint} method.
 #'   
 #' @param ... One or more models. Currently, \code{lm}, \code{glm}, \code{geeglm},
 #' \code{geelm}, and \code{mice} models are supported, but other model types may
@@ -159,4 +160,6 @@ plotEst <- function(..., intercept = TRUE, par = NULL, colors = NULL) {
                         
   q
 }
+
+
 

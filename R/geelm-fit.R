@@ -106,9 +106,9 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   # Initialize for each correlation structure
   if(corstr == "independence") {
     R.alpha.inv <- Diagonal(x = rep.int(1, nn))/phi
-    BlockDiag <- getBlockDiag(len)$BDiag
+    BlockDiag <- get_block_diag(len)$BDiag
   } else if(corstr == "ar1"){
-    tmp <- buildAlphaInvAR(len)
+    tmp <- build_alpha_inv_ar(len)
     # These are the vectors needed to update the inverse correlation
     a1 <- tmp$a1
     a2 <- tmp$a2
@@ -118,12 +118,12 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     # both are vectors of indices that facilitate in updating R.alpha.inv
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
-    BlockDiag <- getBlockDiag(len)$BDiag
+    BlockDiag <- get_block_diag(len)$BDiag
     
   } else if(corstr == "exchangeable"){
     # Build a block diagonal correlation matrix for updating and sandwich calculation
     # this matrix is block diagonal with all ones.  Each block is of dimension cluster size.
-    tmp <- getBlockDiag(len)
+    tmp <- get_block_diag(len)
     BlockDiag <- tmp$BDiag
     
     #Create a vector of length number of observations with associated cluster size for each observation
@@ -143,7 +143,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     
     # Build block diagonal similar to in exchangeable case, also get row indices and column
     # indices for fast matrix updating later.
-    tmp <- getBlockDiag(len)
+    tmp <- get_block_diag(len)
     BlockDiag <- tmp$BDiag
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
@@ -153,7 +153,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     if( max(len^2 - len)/2 > length(len)){
       stop("Cannot estimate that many parameters: not enough subjects for unstructured correlation")
     }
-    tmp <- getBlockDiag(len)
+    tmp <- get_block_diag(len)
     BlockDiag <- tmp$BDiag
     row.vec <- tmp$row.vec
     col.vec <- tmp$col.vec
@@ -162,15 +162,15 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     corr.mat <- attr(corstr, "corr.mat")
     
     # check if matrix meets some basic conditions
-    corr.mat <- checkFixedMat(corr.mat, len)
+    corr.mat <- check_fixed_mat(corr.mat, len)
     
-    R.alpha.inv <- as(getAlphaInvFixed(corr.mat, len), "symmetricMatrix")/phi
-    BlockDiag <- getBlockDiag(len)$BDiag
+    R.alpha.inv <- as(get_alpha_inv_fixed(corr.mat, len), "symmetricMatrix")/phi
+    BlockDiag <- get_block_diag(len)$BDiag
     
   } else if(corstr == "userdefined") {
     corr.mat <- attr(corstr, "corr.mat")
   
-    corr.mat <- checkUserMat(corr.mat, len)
+    corr.mat <- check_user_mat(corr.mat, len)
     
     # get the structure of the correlation matrix in a way that
     # I can use later on.
@@ -181,7 +181,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     struct.vec <- tmp1$struct.vec
     
     # the same block diagonal trick.
-    tmp2 <- getBlockDiag(len)
+    tmp2 <- get_block_diag(len)
     BlockDiag <- tmp2$BDiag
     row.vec <- tmp2$row.vec
     col.vec <- tmp2$col.vec
@@ -209,7 +209,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     diag(StdErr) <- sqrt(1/VarFun(mu))
     
     if(!scale.fix){
-      phi <- updatePhi(y, mu, VarFun, p, StdErr, included, includedlen, 
+      phi <- update_phi(y, mu, VarFun, p, StdErr, included, includedlen, 
                        sqrtW, useP)
     }
     
@@ -221,26 +221,26 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
     ## Calculate alpha, R(alpha)^(-1) / phi
     if(corstr == "ar1") { 
       
-      alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
+      alpha.new <- update_alpha_ar(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
                                  included, includedlen, includedvec, allobs,
                                  sqrtW, BlockDiag, useP)
-      R.alpha.inv <- getAlphaInvAR(alpha.new, a1, a2, a3, a4, row.vec, col.vec)/phi
+      R.alpha.inv <- get_alpha_inv_ar(alpha.new, a1, a2, a3, a4, row.vec, col.vec)/phi
       
     } else if(corstr == "exchangeable") {
      
-      alpha.new <- updateAlphaEX(y, mu, VarFun, phi, id, len, StdErr,
+      alpha.new <- update_alpha_ex(y, mu, VarFun, phi, id, len, StdErr,
                                  Resid, p, BlockDiag, included,
                                  includedlen, sqrtW, useP)
-      R.alpha.inv <- getAlphaInvEX(alpha.new, n.vec, BlockDiag)/phi
+      R.alpha.inv <- get_alpha_inv_ex(alpha.new, n.vec, BlockDiag)/phi
       
     } else if(corstr == "m-dependent") {
       
       if(Mv==1){ #???IS THIS RIGHT???? - this should be done way earlier if Mv = 1 means AR1 (but is that right???)
-        alpha.new <- updateAlphaAR(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
+        alpha.new <- update_alpha_ar(y, mu, VarFun, phi, id, len, StdErr, Resid, p,
                                    included, includedlen, includedvec, allobs,
                                    sqrtW, BlockDiag, useP)
       }else{
-        alpha.new <- updateAlphaMDEP(y, mu, VarFun, phi, id, len,
+        alpha.new <- update_alpha_mdep(y, mu, VarFun, phi, id, len,
                                      StdErr, Resid, p, BlockDiag, Mv,
                                      included, includedlen,
                                      allobs, sqrtW, useP)
@@ -252,11 +252,11 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
         done <- TRUE
         warning("An estimated correlation great than 1 was found, stopping before convergence.")
       }
-      R.alpha.inv <- getAlphaInvMDEP(alpha.new, len, row.vec, col.vec)/phi
+      R.alpha.inv <- get_alpha_inv_mdep(alpha.new, len, row.vec, col.vec)/phi
       
     } else if(corstr == "unstructured") {
      
-      alpha.new <- updateAlphaUnstruc(y, mu, VarFun, phi, id, len,
+      alpha.new <- update_alpha_unstruc(y, mu, VarFun, phi, id, len,
                                       StdErr, Resid,  p, BlockDiag,
                                       included, includedlen, allobs,
                                       sqrtW, useP)
@@ -265,7 +265,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
         done <- TRUE
         warning("An estimated correlation great than 1 was found, stopping before convergence.")
       }
-      R.alpha.inv <- getAlphaInvUnstruc(alpha.new, len, row.vec, col.vec)/phi
+      R.alpha.inv <- get_alpha_inv_unstruc(alpha.new, len, row.vec, col.vec)/phi
 
     } else if(corstr == "fixed") {
       
@@ -275,11 +275,11 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
      
     } else if(corstr == "userdefined") {
      
-      alpha.new <- updateAlphaUser(y, mu, phi, id, len, StdErr, Resid,
+      alpha.new <- update_alpha_user(y, mu, phi, id, len, StdErr, Resid,
                                    p, BlockDiag, user.row, user.col,
                                    corr.list, included, includedlen,
                                    allobs, sqrtW, useP)
-      R.alpha.inv <- getAlphaInvUser(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec)/phi
+      R.alpha.inv <- get_alpha_inv_user(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec)/phi
       
     } else if(corstr == "independence") {
       
@@ -287,7 +287,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
       alpha.new <- "independent"
     }
     
-    beta.list <- updateBeta(y, x, beta, offset, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, 
+    beta.list <- update_beta(y, x, beta, offset, InvLinkDeriv, InvLink, VarFun, R.alpha.inv, StdErr, 
                             dInvLinkdEta, tol, W, included)
     beta <- beta.list$beta
     
@@ -323,7 +323,7 @@ geelm.fit <- function(x, y, id, offset, family, weights, control, corstr,
   
   eta <- as.vector(x %*% beta) + offset
   if(sandwich){
-    sandvar.list <- getSandwich(y, x, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, 
+    sandvar.list <- get_sandwich(y, x, eta, id, R.alpha.inv, phi, InvLinkDeriv, InvLink, VarFun, 
                                 beta.list$hess, StdErr, dInvLinkdEta, BlockDiag, W, included)
   } else {
     sandvar.list <- list(sandvar = "no sandwich")

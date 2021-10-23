@@ -2,7 +2,7 @@
 % Please edit documentation in R/drop1.R
 \name{drop1.geem}
 \alias{drop1.geem}
-\title{Drop All Possible Single Terms to a geem Model Using Wald or Score Test}
+\title{Drop All Possible Single Terms to a \code{geem} Model Using Wald or Score Test}
 \usage{
 \method{drop1}{geem}(
   object,
@@ -21,13 +21,13 @@
 
 \item{method}{Indicates which method is used for computing the standard
 error. \code{robust} is the default and corresponds to the modified sandwich
-estimator. \code{naive} is the classical naive cariance estimate.
+estimator. \code{naive} is the classical naive variance estimate.
 \code{sandwich} is an alias for \code{robust}.}
 
 \item{\dots}{other arguments. Not currently used}
 }
 \value{
-An object of class "anova" summarizing the differences in fit
+An object of class \code{anova} summarizing the differences in fit
 between the models.
 }
 \description{

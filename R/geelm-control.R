@@ -1,4 +1,4 @@
-#' Control estimation of GEEs
+#' Control estimation of GEE models
 #' 
 #' Settings for controlling technical details of GEE fitting via geelm. 
 #' 
@@ -8,7 +8,7 @@
 #' @param tol Tolerance for asserting convergence. 
 #' 
 #' @param useP If set to \code{FALSE}, do not use the n-p correction for 
-#'    dispersion and correlation estimates, as in Liang and Zeger. This can be 
+#'    dispersion and correlation estimates. This can be 
 #'    useful when the number of observations is small, as subtracting p may yield 
 #'    correlations greater than 1.
 #'    

@@ -1,5 +1,5 @@
 ### Update the alpha (possibly) vector for the USERDEFINED correlation matrix.
-updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid,
+update_alpha_user <- function(YY, mu, phi, id, len, StdErr, Resid,
                             p, BlockDiag, row.vec, col.vec, corr.list,
                             included, includedlen, allobs,sqrtW, useP){
   ml <- max(len)
@@ -31,7 +31,7 @@ updateAlphaUser <- function(YY, mu, phi, id, len, StdErr, Resid,
 
 
 ### Calculate the parameter for the EXCHANGEABLE correlation structure
-updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr,
+update_alpha_ex <- function(YY, mu, VarFun, phi, id, len, StdErr,
                           Resid, p, BlockDiag, included,
                           includedlen, sqrtW, useP){
   W <- sqrtW^2
@@ -60,7 +60,7 @@ updateAlphaEX <- function(YY, mu, VarFun, phi, id, len, StdErr,
 }
 
 ### Calculate the parameters for the M-DEPENDENT correlation structure
-updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len,
+update_alpha_mdep <- function(YY, mu, VarFun, phi, id, len,
                             StdErr, Resid, p, BlockDiag, m,
                             included, includedlen, allobs, sqrtW, useP){
 
@@ -92,7 +92,7 @@ updateAlphaMDEP <- function(YY, mu, VarFun, phi, id, len,
 }
 
 ### Calculate the parameter for the AR-1 correlation, also used for 1-DEPENDENT
-updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p,
+update_alpha_ar <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p,
                           included, includedlen, includedvec, allobs,
                           sqrtW, BlockDiag, useP){
 
@@ -108,7 +108,7 @@ updateAlphaAR <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid, p,
 
 
 ### Calculate alpha values for UNSTRUCTURED correlation
-updateAlphaUnstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid,
+update_alpha_unstruc <- function(YY, mu, VarFun, phi, id, len, StdErr, Resid,
                                p, BlockDiag, included, includedlen,
                                allobs, sqrtW, useP){
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotEst.R
 \name{plotEst}
 \alias{plotEst}
-\title{Plot parameter estimates with 95 \% confidence intervals}
+\title{Plot parameter estimates with 95 pct confidence intervals.}
 \usage{
 plotEst(..., intercept = TRUE, par = NULL, colors = NULL)
 }
@@ -11,33 +11,35 @@ plotEst(..., intercept = TRUE, par = NULL, colors = NULL)
 \code{geelm}, and \code{mice} models are supported, but other model types may
 be applicable as well, see details.}
 
-\item{intercept}{Logical indicating whether the intercept should be plotted (defaults 
+\item{intercept}{Logical indicating whether the intercept should be plotted (defaults
 to \code{TRUE}).}
 
-\item{par}{Which model parameters to plot estimates for, given as character strings. 
+\item{par}{Which model parameters to plot estimates for, given as character strings.
 Default is \code{NULL} which means that all parameter estimates are plotted.}
 
-\item{colors}{Color scale to use if several models are plotted. Defaults to 
+\item{colors}{Color scale to use if several models are plotted. Defaults to
 a color blind friendly scale. If there are more models than there are colors,
 the color values are repeated.}
 }
 \description{
-Parameter estimates are plotted along with error bars indicating 95 \% 
-confidence intervals.
+Parameter estimates are plotted along with error bars
+indicating 95 pct confidence intervals.
 }
 \details{
-One or more models can be supplied, and if the parameters
-have the same names across models, they will be grouped together allowing for
-easy comparison. 
+One or more models can be supplied, and if the parameters have the
+same names across models, they will be grouped together
+allowing for easy comparison.
 
-Note that models can be given with or without names. If names are supplied (see
-example below), these are printed in the plot legend. Otherwise, the name of the 
-model object is printed there instead.
+Note that models can be given with or without names. If names are
+supplied (see example below), these are printed in the plot
+legend. Otherwise, the name of the model object is printed there
+instead.
 
-Implementation details: As a default, the estimates are extracted from the 
-\code{$coefficients} slot from the model object and confidence intervals are 
-computed by calling \code{confint()}. This means that \code{plotEst} supports
-all models that have a \code{coefficents} slot and a \code{confint} method.
+Implementation details: As a default, the estimates are extracted
+from the \code{$coefficients} slot from the model object and
+confidence intervals are computed by calling \code{confint()}. This
+means that \code{plotEst} supports all models that have a
+\code{coefficents} slot and a \code{confint} method.
 }
 \examples{
 # Fit example models

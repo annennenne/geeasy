@@ -1,4 +1,4 @@
-#' Drop All Possible Single Terms to a geeglm Model Using Wald or Score Test
+#' Drop All Possible Single Terms to a `geeglm` Model Using Wald or Score Test
 #'
 #' Compute all the single terms in the scope argument that can dropped from the
 #' model, and compute a table of the corresponding Wald test statistics.
@@ -9,10 +9,10 @@
 #' @param test  the type of test to include.
 #' @param method Indicates which method is used for computing the standard
 #' error. \code{robust} is the default and corresponds to the modified sandwich
-#' estimator. \code{naive} is the classical naive cariance estimate.
+#' estimator. \code{naive} is the classical naive variance estimate.
 #' \code{sandwich} is an alias for \code{robust}.
 #' @param \dots other arguments. Not currently used
-#' @return An object of class "anova" summarizing the differences in fit
+#' @return An object of class `anova` summarizing the differences in fit
 #' between the models.
 #' @author Claus Ekstrom \email{claus@@ekstroem.dk}
 #' @seealso \code{\link{drop1}}, \code{geeglm}, \code{geese}
@@ -100,21 +100,20 @@ drop1.geeglm <- function(object, scope, test = c("Wald", "none", "score", "sassc
 }
 
 
-#' Drop All Possible Single Terms to a geem Model Using Wald or Score Test
+#' Drop All Possible Single Terms to a `geem` Model Using Wald or Score Test
 #'
 #' Compute all the single terms in the scope argument that can dropped from the
 #' model, and compute a table of the corresponding Wald test statistics.
-#'
 #'
 #' @param object a fitted object of class geese.
 #' @param scope a formula giving the terms to be considered for adding or dropping.
 #' @param test  the type of test to include.
 #' @param method Indicates which method is used for computing the standard
 #' error. \code{robust} is the default and corresponds to the modified sandwich
-#' estimator. \code{naive} is the classical naive cariance estimate.
+#' estimator. \code{naive} is the classical naive variance estimate.
 #' \code{sandwich} is an alias for \code{robust}.
 #' @param \dots other arguments. Not currently used
-#' @return An object of class "anova" summarizing the differences in fit
+#' @return An object of class `anova` summarizing the differences in fit
 #' between the models.
 #' @author Claus Ekstrom \email{claus@@ekstroem.dk}
 #' @seealso \code{\link{drop1}}, \code{geem}

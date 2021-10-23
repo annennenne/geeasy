@@ -2,7 +2,7 @@
 % Please edit documentation in R/geelm-control.R
 \name{geelm.control}
 \alias{geelm.control}
-\title{Control estimation of GEEs}
+\title{Control estimation of GEE models}
 \usage{
 geelm.control(
   init.beta = NULL,
@@ -30,9 +30,9 @@ iteration.}
 
 \item{scale.fix}{logical indicating if the scale should be fixed.}
 
-\item{useP}{If set to \code{FALSE}, do not use the n-p correction for 
-dispersion and correlation estimates, as in Liang and Zeger. This can be 
-useful when the number of observations is small, as subtracting p may yield 
+\item{useP}{If set to \code{FALSE}, do not use the n-p correction for
+dispersion and correlation estimates. This can be
+useful when the number of observations is small, as subtracting p may yield
 correlations greater than 1.}
 
 \item{std.err}{Character string specifying which standard error estimation method

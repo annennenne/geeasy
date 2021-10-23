@@ -604,7 +604,7 @@ is_equidistant <- function(x) {
 
 ### Simple moment estimator of dispersion parameter
 #' @import Matrix
-updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, useP){
+update_phi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, useP){
   nn <- sum(includedlen)
   
   resid <- diag(StdErr %*% included %*% sqrtW %*% Diagonal(x = YY - mu))
@@ -617,7 +617,7 @@ updatePhi <- function(YY, mu, VarFun, p, StdErr, included, includedlen, sqrtW, u
   
 ### Method to update coefficients.  Goes to a maximum of 10 iterations, or when
 ### rough convergence has been obtained.
-updateBeta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
+update_beta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
                        VarFun, R.alpha.inv, StdErr, dInvLinkdEta, tol, W, included){
   beta.new <- beta
   conv <- FALSE
@@ -642,7 +642,7 @@ updateBeta <- function(YY, XX, beta, offset, InvLinkDeriv, InvLink,
 
 
 ### Calculate the sandiwch estimator as usual.
-getSandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
+get_sandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
                         InvLink, VarFun, hessMat, StdErr, dInvLinkdEta,
                         BlockDiag, W, included){
   

@@ -23,7 +23,7 @@ getUserStructure <- function(corr.mat){
 
 ### Get the inverse correlation matrix for USERDEFINED.
 #' @importFrom methods as
-getAlphaInvUser <- function(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec){
+get_alpha_inv_user <- function(alpha.new, len, struct.vec, user.row, user.col, row.vec, col.vec){
   K <- length(len)
   ml <- max(len)
   sl2 <- sum(len^2)
@@ -58,7 +58,7 @@ getAlphaInvUser <- function(alpha.new, len, struct.vec, user.row, user.col, row.
 }
 
 ### Check some conditions on the USERDEFINED correlation structure supplied.
-checkUserMat <- function(corr.mat, len){
+check_user_mat <- function(corr.mat, len){
   if(is.null(corr.mat)){
     stop("corr.mat must be specified if using user defined correlation structure")
   }

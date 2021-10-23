@@ -1,5 +1,5 @@
 ### Get the AR-1 inverse matrix
-getAlphaInvAR <- function(alpha.new, a1,a2,a3,a4, row.vec, col.vec){
+get_alpha_inv_ar <- function(alpha.new, a1,a2,a3,a4, row.vec, col.vec){
   corr.vec <- c(alpha.new*a1/(1-alpha.new^2) , ( (1+alpha.new^2)*a2 + a3)/(1-alpha.new^2) + a4, alpha.new*a1/(1-alpha.new^2))	
   return(as(sparseMatrix(i= row.vec, j=col.vec, x=corr.vec), "symmetricMatrix"))
 }
@@ -8,7 +8,7 @@ getAlphaInvAR <- function(alpha.new, a1,a2,a3,a4, row.vec, col.vec){
 ### Get the necessary structures for the inverse matrix of AR-1
 ### returns the row and column indices of the AR-1 inverse
 ### a1, a2, a3, and a4 are used to compute the entries in the matrix
-buildAlphaInvAR <- function(len){
+build_alpha_inv_ar <- function(len){
   
   nn <- sum(len)
   K <- length(len)
@@ -40,14 +40,14 @@ buildAlphaInvAR <- function(len){
 }
 
 ### Returns the full inverse matrix of the correlation for EXCHANGEABLE structure
-getAlphaInvEX <- function(alpha.new, diag.vec, BlockDiag){
+get_alpha_inv_ex <- function(alpha.new, diag.vec, BlockDiag){
   return(as(BlockDiag %*% Diagonal(x = (-alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))))
             + Diagonal( x = ((1+(diag.vec-2)*alpha.new)/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))
                              + alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)))), "symmetricMatrix"))
 }
 
 ### Get the inverse of M-DEPENDENT correlation matrix.
-getAlphaInvMDEP <- function(alpha.new, len, row.vec, col.vec){
+get_alpha_inv_mdep <- function(alpha.new, len, row.vec, col.vec){
   K <- length(len)
   N <- sum(len)
   m <- length(alpha.new)
@@ -87,7 +87,7 @@ getAlphaInvMDEP <- function(alpha.new, len, row.vec, col.vec){
 
 ### Get a vector of elements of the inverse correlation matrix for UNSTRUCTURED
 ### Inversion strategy follows the same basic idea as M-DEPENDENT
-getAlphaInvUnstruc <- function(alpha.new, len, row.vec, col.vec){
+get_alpha_inv_unstruc <- function(alpha.new, len, row.vec, col.vec){
   K <- length(len)
   unstr.row <- NULL
   unstr.col <- NULL
@@ -127,7 +127,7 @@ getAlphaInvUnstruc <- function(alpha.new, len, row.vec, col.vec){
 
 ### Invert the FIXED correlation structure.  Again,
 ### uses same basic technique as M-DEPENDENT
-getAlphaInvFixed <- function(mat, len){
+get_alpha_inv_fixed <- function(mat, len){
   K <- length(len)
   mat.sizes <- sort(unique(len))
   mat.inverses <- list()
@@ -144,6 +144,6 @@ getAlphaInvFixed <- function(mat, len){
   
   mat.finder <- match(len, mat.sizes)
   corr.vec <- unlist(mat.inverses[mat.finder])  
-  return(as(getBlockDiag(len, corr.vec)$BDiag, "symmetricMatrix"))	
+  return(as(get_block_diag(len, corr.vec)$BDiag, "symmetricMatrix"))	
 }
 

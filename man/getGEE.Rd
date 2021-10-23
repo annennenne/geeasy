@@ -24,30 +24,30 @@ Get information for a geelm/geeglm object
 \details{
 The allowed names are:
 
-\code{coefficients} or \code{beta}: Coefficients from the mean structure model (betas) on their 
+\code{coefficients} or \code{beta}: Coefficients from the mean structure model (betas) on their
 original scales
 
 \code{residuals}: Pearson residuals, in the order of the inputted dataset (with NAs omitted).
 
-\code{fitted.values}: Fitted values (response scale), in the order of the inputted dataset 
- (with NAs omitted).
- 
+\code{fitted.values}: Fitted values (response scale), in the order of the inputted dataset
+(with NAs omitted).
+
 \code{rank}: The rank of the model matrix, i.e. the number of estimated mean structure
 coefficients.
 
 \code{family}: A family object specifying which exponential family was used for fitting
-the mean structure model, see \code{\link{family}} for more information. 
+the mean structure model, see \code{\link{family}} for more information.
 
 \code{linear.predictors}: The linear predictor on the original scale.
 
 \code{df.residuals}: Residual degrees of freedom.
 
-\code{corstr}: Name of the correlation structured imposed on the model. If the 
+\code{corstr}: Name of the correlation structured imposed on the model. If the
 correlation structure requires further information, it is stored in a suitably named
 attribute. For example, for m-dependent correlation structures, the m scalar is available
-in an attribute named \code{Mv}. 
+in an attribute named \code{Mv}.
 
-\code{std.err}: Method used to estimate the standard error of the mean structure 
+\code{std.err}: Method used to estimate the standard error of the mean structure
 coefficients (betas).
 
 \code{alpha}: The estimated parameter(s) for the variance structure.
@@ -56,7 +56,7 @@ coefficients (betas).
 
 \code{vbeta}: The estimated variance matrix of the mean structure (beta) coefficients.
 
-\code{beta.se}: The standard erorrs of the mean structure (beta) coefficients.
+\code{beta.se}: The standard errors of the mean structure (beta) coefficients.
 
 \code{clusz} or \code{clustersizes}: Sizes of each of the clusters in the data.
 

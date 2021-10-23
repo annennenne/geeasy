@@ -33,7 +33,7 @@ getfam <- function(family){
 
 ### Get a block diagonal matrix. Each block has dimension corresponding to
 ### each cluster size.  By default, each block is just a matrix filled with ones.
-getBlockDiag <- function(len, xvec=NULL){
+get_block_diag <- function(len, xvec=NULL){
   K <- length(len)
   
   if(is.null(xvec)){
@@ -65,7 +65,7 @@ getBlockDiag <- function(len, xvec=NULL){
 
 
 ### Check some conditions on the FIXED correlation structure.
-checkFixedMat <- function(corr.mat, len){
+check_fixed_mat <- function(corr.mat, len){
   if(is.null(corr.mat)){
     stop("corr.mat must be specified if using fixed correlation structure")
   }

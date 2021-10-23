@@ -44,7 +44,7 @@ geelm(
     \code{n}.
   }
 
-\item{id}{A vector identifying the clusters. If NULL, then each observation is 
+\item{id}{A vector identifying the clusters. If NULL, then each observation is
 assigned its own cluster.}
 
 \item{offset}{this can be used to specify an \emph{a priori} known
@@ -54,10 +54,10 @@ assigned its own cluster.}
     included in the formula instead or as well, and if more than one is
     specified their sum is used.  See \code{\link[stats]{model.offset}}.}
 
-\item{family}{A description of the error distribution and link function to be used 
-in the model. The argument can be one of three options: a \code{family} object, 
-a character string, or a list of functions. For more information on how to use \code{family} 
- objects, see Details below.}
+\item{family}{A description of the error distribution and link function to be used
+in the model. The argument can be one of three options: a \code{family} object,
+a character string, or a list of functions. For more information on how to use \code{family}
+objects, see Details below.}
 
 \item{weights}{an optional vector of \sQuote{prior weights} to be used
     in the fitting process.  Should be \code{NULL} or a numeric vector.}
@@ -66,23 +66,23 @@ a character string, or a list of functions. For more information on how to use \
     process.  For \code{glm.fit} this is passed to
     \code{\link[stats]{glm.control}}.}
 
-\item{corstr}{A character string specifying the correlation structure. 
-The default is "independence". Allowed structures are: \code{"independence"}, 
-\code{"exchangeable"},  \code{"ar1"}, \code{"m-dependent"}, \code{"unstructured"}, 
-\code{"fixed"}, and \code{"userdefined"}.  Any unique substring may be supplied.  
- If \code{"fixed"} or \code{"userdefined"}, then \code{corr.mat} must be 
- specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.}
+\item{corstr}{A character string specifying the correlation structure.
+The default is "independence". Allowed structures are: \code{"independence"},
+\code{"exchangeable"},  \code{"ar1"}, \code{"m-dependent"}, \code{"unstructured"},
+\code{"fixed"}, and \code{"userdefined"}.  Any unique substring may be supplied.
+If \code{"fixed"} or \code{"userdefined"}, then \code{corr.mat} must be
+specified.  If \code{"m-dependent"}, then \code{Mv} is relevant.}
 
 \item{start}{starting values for the parameters in the linear predictor.}
 
 \item{formula}{A formula expression similar to that for \code{\link{glm}},}
 
-\item{waves}{An numeric vector identifying the time ordering within clusters 
-(i.e. levels of \code{id}). By default, data are assumed 
-to be sorted such that observations in a cluster are in consecutive rows 
-and higher numbered rows in a cluster are assumed to be later. Note that only the 
-ordering of the values in \code{waves} is used, NOT the numeric values themselves. 
-This means that e.g. having waves equal to \code{c(1, 2, 3)} 
+\item{waves}{An numeric vector identifying the time ordering within clusters
+(i.e. levels of \code{id}). By default, data are assumed
+to be sorted such that observations in a cluster are in consecutive rows
+and higher numbered rows in a cluster are assumed to be later. Note that only the
+ordering of the values in \code{waves} is used, NOT the numeric values themselves.
+This means that e.g. having waves equal to \code{c(1, 2, 3)}
 or \code{c(1, 2, 7)} within a cluster results in the same model.}
 
 \item{data}{An optional data frame containing the variables in the model.}
@@ -90,49 +90,49 @@ or \code{c(1, 2, 7)} within a cluster results in the same model.}
 \item{Mv}{For \code{"m-dependent"}, the value for \code{m}.}
 
 \item{corr.mat}{The correlation matrix for \code{"fixed"}.  Matrix should
- be symmetric with dimensions >= the maximum cluster size.  If the correlation 
- structure is \code{"userdefined"}, then this is a matrix describing which 
- correlations are the same.
- 
+be symmetric with dimensions >= the maximum cluster size.  If the correlation
+structure is \code{"userdefined"}, then this is a matrix describing which
+correlations are the same.
+
 @param control A list of parameters for controlling the fitting process.}
 
 \item{engine}{Engine used to fit the model. The default, \code{"geeasy"} uses this
 package (built on the \code{geeM} package), while \code{"geepack"} uses
-the function \code{geeglm} from \code{geepack} to fit the model. Note that if 
-the geepack engine is used, the data are sorted according to id (and possibly 
-waves within id) and NAs are dropped before the data is used 
+the function \code{geeglm} from \code{geepack} to fit the model. Note that if
+the geepack engine is used, the data are sorted according to id (and possibly
+waves within id) and NAs are dropped before the data is used
 (this differs from the standard in geepack).}
 
-\item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
+\item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in
 an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
 \code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
 object.}
 }
 \value{
-An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit. 
+An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit.
 It contains the following slots:
 
-\code{$coefficients}: Coefficients from the mean structure model (betas) on their 
+\code{$coefficients}: Coefficients from the mean structure model (betas) on their
 original scales
 
 \code{$residuals}: Pearson residuals, in the order of the inputted dataset (with NAs omitted).
 
-\code{$fitted.values}: Fitted values (response scale), in the order of the inputted dataset 
- (with NAs omitted).
- 
+\code{$fitted.values}: Fitted values (response scale), in the order of the inputted dataset
+(with NAs omitted).
+
 \code{$rank}: The rank of the model matrix, i.e. the number of estimated mean structure
 coefficients.
 
-\code{$qr}: QR decomposition of the model matrix (NA omitted). 
+\code{$qr}: QR decomposition of the model matrix (NA omitted).
 
 \code{$family}: A family object specifying which exponential family was used for fitting
-the mean structure model, see \code{\link{family}} for more information. 
+the mean structure model, see \code{\link{family}} for more information.
 
 \code{$linear.predictors}: The linear predictor on the original scale.
 
 \code{$weights}: Weights used for computations, in the order of the inputted dataset
- (NAs omitted).
- 
+(NAs omitted).
+
 \code{$prior.weights}: The original weights used to produce this geeglm object (set
 by user or defaulted to 1 for all observations).
 
@@ -153,7 +153,7 @@ by user or defaulted to 1 for all observations).
 \code{$offset}: Offset used for fitting the model, ordered as the original inputted data
 with NAs omitted.
 
-\code{$control}: Value of control parameters used for fitting the model. 
+\code{$control}: Value of control parameters used for fitting the model.
 
 \code{$method}: Internal function used for fitting the model.
 
@@ -161,65 +161,65 @@ with NAs omitted.
 
 \code{$xlevels}: Levels of factor variables used in the model formula (if any).
 
-\code{$geese}: An object containing further information about the variance estimation, 
-including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated 
-coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion 
-parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See 
-\code{\link{geese}} for more information. 
+\code{$geese}: An object containing further information about the variance estimation,
+including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated
+coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion
+parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See
+\code{\link{geese}} for more information.
 
-\code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
-and scale structures of the model. 
+\code{$modelInfo}: Information about the link functions used for fitting the mean, variance
+and scale structures of the model.
 
-\code{$id}: IDs used for identifying the clusters, ordered as the original inputted data 
+\code{$id}: IDs used for identifying the clusters, ordered as the original inputted data
 with NAs omitted.
 
-\code{$corstr}: Name of the correlation structured imposed on the model. If the 
+\code{$corstr}: Name of the correlation structured imposed on the model. If the
 correlation structure requires further information, it is stored in a suitably named
 attribute. For example, for m-dependent correlation structures, the m scalar is available
-in an attribute named \code{Mv}. 
+in an attribute named \code{Mv}.
 
 \code{$cor.link}: Link function used for the correlation structure.
 
-\code{$std.err}: Method used to estimate the standard error of the mean structure 
+\code{$std.err}: Method used to estimate the standard error of the mean structure
 coefficients (betas).
 }
 \description{
 Estimate mean structure parameters and their corresponding standard errors for
-generalized linear models with clustered or correlated observations by use of 
+generalized linear models with clustered or correlated observations by use of
 generalized estimating equations.
 }
 \details{
 Users may specify functions for link and variance functions, but the
- functions must be vectorized functions. 
-   
- Offsets can be specified in the model formula, as in \code{glm()} or they may be
- specified using the \code{offset} argument. If offsets are specified in both ways, 
- their sum is used as an offset.
- 
- For the \code{"userdefined"} correlation option, the function accepts a 
- matrix with consecutive integers. Each such integer represent a distinct
- parameter that will be estimated.  All entries given as 1 will be assumed
-  to be the same as each other and will be assumed to be possibly different 
-  from entries with a 2, and so on.\code{geelm} only looks at the upper 
- triangle of the matrix.  Any entry given as 0 will be fixed at 0.  
-  
- If observations are dropped because they have a weight of 0, then the 
- denominator for the moment estimates of the correlation matrices are 
- calculated using the number of non-zero Pearson residuals for the 
- correlation structures \code{unstructured}, \code{userdefined} and 
- \code{m-dependent} with \code{Mv>1}.  Therefore, residuals numerically 
- equal to 0 may cause problems in the calculation of correlation parameters.
+functions must be vectorized functions.
 
- Concerning the \code{family} argument: If the supplied argument is a character 
- string, then the string should correspond to one of the family objects.
- In order to define a link function, a list must be created with the 
- components \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, all of which are 
- vectorized functions.  If the components in the list are not named
-  as \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, then \code{geelm} 
-  assumes that the functions are given in that order.  LinkFun and VarFun 
-  are the link and variance functions. InvLink and InvLinkDeriv are the inverse 
-  of the link function and the derivative of the inverse of the link function 
-  and so are decided by the choice of the link function.
+Offsets can be specified in the model formula, as in \code{glm()} or they may be
+specified using the \code{offset} argument. If offsets are specified in both ways,
+their sum is used as an offset.
+
+For the \code{"userdefined"} correlation option, the function accepts a
+matrix with consecutive integers. Each such integer represent a distinct
+parameter that will be estimated.  All entries given as 1 will be assumed
+to be the same as each other and will be assumed to be possibly different
+from entries with a 2, and so on.\code{geelm} only looks at the upper
+triangle of the matrix.  Any entry given as 0 will be fixed at 0.
+
+If observations are dropped because they have a weight of 0, then the
+denominator for the moment estimates of the correlation matrices are
+calculated using the number of non-zero Pearson residuals for the
+correlation structures \code{unstructured}, \code{userdefined} and
+\code{m-dependent} with \code{Mv>1}.  Therefore, residuals numerically
+equal to 0 may cause problems in the calculation of correlation parameters.
+
+Concerning the \code{family} argument: If the supplied argument is a character
+string, then the string should correspond to one of the family objects.
+In order to define a link function, a list must be created with the
+components \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, all of which are
+vectorized functions.  If the components in the list are not named
+as \code{(LinkFun, VarFun, InvLink, InvLinkDeriv)}, then \code{geelm}
+assumes that the functions are given in that order.  LinkFun and VarFun
+are the link and variance functions. InvLink and InvLinkDeriv are the inverse
+of the link function and the derivative of the inverse of the link function
+and so are decided by the choice of the link function.
 }
 \section{Functions}{
 \itemize{

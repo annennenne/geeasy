@@ -42,7 +42,7 @@
 #' 
 #' \code{vbeta}: The estimated variance matrix of the mean structure (beta) coefficients.
 #' 
-#' \code{beta.se}: The standard erorrs of the mean structure (beta) coefficients.
+#' \code{beta.se}: The standard errors of the mean structure (beta) coefficients.
 #' 
 #' \code{clusz} or \code{clustersizes}: Sizes of each of the clusters in the data.
 #' 
