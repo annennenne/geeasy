@@ -19,8 +19,8 @@
 \item{level}{the confidence level required.}
 
 \item{std.err}{Which standard error estimation method that should be used for
-computing the confidence intervals. Only "san.se" is supported for geelm objects but
-"jack", "j1s" or "fij" may be used for geeglm objects (if they have been estimated
+computing the confidence intervals. Only \code{san.se} is supported for geelm objects but
+\code{jack}, \code{j1s} or \code{fij} may be used for geeglm objects (if they have been estimated
 when fitting the model).}
 
 \item{...}{additional argument(s) for methods.}

@@ -62,9 +62,7 @@ objects, see Details below.}
 \item{weights}{an optional vector of \sQuote{prior weights} to be used
     in the fitting process.  Should be \code{NULL} or a numeric vector.}
 
-\item{control}{a list of parameters for controlling the fitting
-    process.  For \code{glm.fit} this is passed to
-    \code{\link[stats]{glm.control}}.}
+\item{control}{A list of parameters for controlling the fitting process.}
 
 \item{corstr}{A character string specifying the correlation structure.
 The default is "independence". Allowed structures are: \code{"independence"},
@@ -92,9 +90,7 @@ or \code{c(1, 2, 7)} within a cluster results in the same model.}
 \item{corr.mat}{The correlation matrix for \code{"fixed"}.  Matrix should
 be symmetric with dimensions >= the maximum cluster size.  If the correlation
 structure is \code{"userdefined"}, then this is a matrix describing which
-correlations are the same.
-
-@param control A list of parameters for controlling the fitting process.}
+correlations are the same.}
 
 \item{engine}{Engine used to fit the model. The default, \code{"geeasy"} uses this
 package (built on the \code{geeM} package), while \code{"geepack"} uses

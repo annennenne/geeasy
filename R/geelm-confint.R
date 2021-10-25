@@ -5,8 +5,8 @@
 #' @inheritParams stats::confint
 #' 
 #' @param std.err Which standard error estimation method that should be used for 
-#' computing the confidence intervals. Only "san.se" is supported for geelm objects but
-#' "jack", "j1s" or "fij" may be used for geeglm objects (if they have been estimated
+#' computing the confidence intervals. Only `san.se` is supported for geelm objects but
+#' `jack`, `j1s` or `fij` may be used for geeglm objects (if they have been estimated
 #' when fitting the model). 
 #' 
 #' @export

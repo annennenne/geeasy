@@ -13,7 +13,7 @@
 #'    correlations greater than 1.
 #'    
 #' @param std.err Character string specifying which standard error estimation method
-#' should be used. Supported options are "san.se" (sandwich SE) and "naive". 
+#' should be used. Supported options are `san.se` (sandwich SE) and `naive`. 
 #'    
 #' @export
 geelm.control <- function(#init.alpha = NULL, 

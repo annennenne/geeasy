@@ -36,7 +36,7 @@ useful when the number of observations is small, as subtracting p may yield
 correlations greater than 1.}
 
 \item{std.err}{Character string specifying which standard error estimation method
-should be used. Supported options are "san.se" (sandwich SE) and "naive".}
+should be used. Supported options are \code{san.se} (sandwich SE) and \code{naive}.}
 }
 \description{
 Settings for controlling technical details of GEE fitting via geelm.

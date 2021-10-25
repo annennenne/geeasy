@@ -41,7 +41,7 @@
 #'   structure is \code{"userdefined"}, then this is a matrix describing which 
 #'   correlations are the same.
 #'   
-#'  @param control A list of parameters for controlling the fitting process. 
+#' @param control A list of parameters for controlling the fitting process. 
 #'    
 #' @param output Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
 #' an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
