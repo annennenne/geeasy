@@ -45,8 +45,8 @@
 #'    
 #' @param output Output object type. There are two options; 1) \code{"geelm"} (default), resulting in 
 #' an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
-#' \code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
-#' object. 
+#' \code{"geem"} (or its alias \code{"geeM"}) which results in an output that has the structure
+#'  of \code{geeM}s \code{geem} object. 
 #' 
 #' @param engine Engine used to fit the model. The default, \code{"geeasy"} uses this
 #' package (built on the \code{geeM} package), while \code{"geepack"} uses
@@ -413,7 +413,7 @@ geelm <- function(formula, id = NULL, waves = NULL, data = parent.frame(),
   ########################################################################
   
   # Create object resembling original geeM::geem() output
-  if (output == "geeM") {
+  if (output %in% c("geem", "geeM")) {
 
         #add slots not already available in geelm.fit output
     results$coefnames <- colnames(X)
