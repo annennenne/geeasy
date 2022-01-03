@@ -101,8 +101,8 @@ waves within id) and NAs are dropped before the data is used
 
 \item{output}{Output object type. There are two options; 1) \code{"geelm"} (default), resulting in
 an output that inherits the structure of \code{geepack}s \code{geeglm} object, or 2)
-\code{"geem"} which results in an output that has the structure of \code{geeM}s \code{geem}
-object.}
+\code{"geem"} (or its alias \code{"geeM"}) which results in an output that has the structure
+of \code{geeM}s \code{geem} object.}
 }
 \value{
 An object of class \code{geelm} (inherits from \code{geeglm}) representing the fit.
