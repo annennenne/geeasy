@@ -7,7 +7,7 @@ Authors@R: c(person("Anne Helby", "Petersen", role = c("aut"), email = "ahpe@sun
 	   person("Lee", "McDaniel", role = "aut", comment = "Author of geeM"),
       	   person("Claus", "Ekstrøm", role = "ctb", comment = "Wrote code for drop1 methods"),
 	   person("Søren", "Højsgaard", role = c("aut", "cre"), email="sorenh@math.aau.dk", comment = "Author of geepack"))
-Date: 2021-03-12
+Date: 2022-01-03
 Maintainer: Søren Højsgaard <sorenh@math.aau.dk>
 Depends: geepack, stats
 Imports: ggplot2, geeM, lme4, methods, Matrix, MESS
