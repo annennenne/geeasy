@@ -1,5 +1,10 @@
 # geeasy 0.1.0
 
-* 2021-10-19
+* 2022-01-03
 
-* First upload of package
+* First upload of geeasy package. The geeasy code is greatly inspired
+  by the geeM package, but the geeasy code is more modularized and
+  hence easier to maintain and extent. The package is, among other
+  things, intended to be the workhorse behind the geeglm function in
+  the geepack package.
+

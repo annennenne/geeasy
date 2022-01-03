@@ -3,12 +3,10 @@ Type: Package
 Title: Tools for Fitting Generalized Linear Models with Clustered Observations using 
     Generalized Estimating Equations
 Version: 0.1.0
-Authors@R: c(person("Anne Helby", "Petersen", role = c("aut"),email = "ahpe@sund.ku.dk"),
-      person("Lee", "McDaniel", role = "aut", comment = "Author of code taken from geeM"),
-      person("Nick", "Henderson", role = "aut", comment = "Author of code taken from geeM"),
-      person("Søren", "Højsgaard", role = c("aut", "cre"), email="sorenh@math.aau.dk", comment = "Author of geepack"),      
-      person("Melanie", "Prague", role = "ctb",comment = "Contributed to geeM"),
-      person("Claus", "Ekstrom", role = "ctb", comment = "Wrote code for drop1 methods"))
+Authors@R: c(person("Anne Helby", "Petersen", role = c("aut"), email = "ahpe@sund.ku.dk"),
+	   person("Lee", "McDaniel", role = "aut", comment = "Author of geeM"),
+      	   person("Claus", "Ekstrøm", role = "ctb", comment = "Wrote code for drop1 methods"),
+	   person("Søren", "Højsgaard", role = c("aut", "cre"), email="sorenh@math.aau.dk", comment = "Author of geepack"))
 Date: 2021-03-12
 Maintainer: Søren Højsgaard <sorenh@math.aau.dk>
 Depends: geepack, stats
@@ -20,9 +18,10 @@ Description: Estimation of generalized linear models with correlated/clustered o
     variance structures and more. The model fitting computations are performed using modified
     code from the 'geeM' package, while the interface and output objects have been written 
     to resemble the 'geepack' package. The package also contains additional tools for working with
-    and inspecting results from the 'geepack package', e.g. a confint method for 
-    'geeglm' objects from geepack. 
+    and inspecting results from the 'geepack' package, e.g. a 'confint' method for 
+    'geeglm' objects from 'geepack'. 
 License: GPL-3
 RoxygenNote: 7.1.2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
+Language: en-US

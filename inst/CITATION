@@ -1,13 +1,16 @@
-citHeader("To cite geeasy in publications use:")
+citHeader("To cite geeasy in publications, please use:")
 
 citEntry(
-  entry    = "Manual",
-  title    = "Tools for Fitting Generalized Linear Models with Clustered Observations using 
-    Generalized Estimating Equations",
-  author   = Anne Helby Petersen and Lee McDaniel and Nick Hendersom and Søren Højsgaard and Melanie Prague and Claus Ekstrøm
-  year     = "2021",
-  url      = "https://CRAN.R-project.org/package=geeasy",
-  textVersion = paste(
-
-  )
+    entry    = "Manual",
+    title    = "Tools for Fitting Generalized Linear Models with Clustered Observations using Generalized Estimating Equations",
+    author   = personList(as.person("Anne Helby Petersen"),
+                          as.person("Lee McDaniel"), 
+                          as.person("Claus Ekstrøm"),
+                          as.person("Søren Højsgaard")
+                          ),
+    year     = "2022",
+    url      = "https://CRAN.R-project.org/package=geeasy",
+    textVersion = paste(
+        "Anne Helby Petersen, Lee McDaniel, Claus Ekstrøm and Søren Højsgaard (2022). Tools for Fitting Generalized Linear Models with Clustered Observations using Generalized Estimating Equations. https://CRAN.R-project.org/package=geeasy"
+    )
 )
