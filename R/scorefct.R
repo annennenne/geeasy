@@ -1,41 +1,49 @@
 #' Internal functions for the MESS package
 #'
-#' @param o input geepack object from a geeglm fit.
-#' @param beta The estimated parameters. If set to \code{NULL} then the parameter estimates are extracted from the model fit object o.
-#' @param testidx Indices of the beta parameters that should be tested equal to zero
-#' @param sas Logical. Should the SAS version of the score test be computed. Defaults to \code{FALSE}.
-#' @author Claus Ekstrom \email{claus@@rprimer.dk}
+#' @param object input geepack object from a geeglm fit.
+#' @param beta The estimated parameters. If set to \code{NULL} then
+#'     the parameter estimates are extracted from the model fit object
+#'     object.
+#' @param testidx Indices of the beta parameters that should be tested
+#'     equal to zero
+#' @param sas Logical. Should the SAS version of the score test be
+#'     computed. Defaults to \code{FALSE}.
+#' @author Claus Ekstrom \email{claus@@ekstroem.dk}
 #' @importFrom MESS qdiag
 #' @keywords manip
-scorefct <- function(o, beta=NULL, testidx=NULL, sas=FALSE) {
+scorefct <- function(object, beta=NULL, testidx=NULL, sas=FALSE) {
 
+    sinv <- function(obj) {
+        return(chol2inv(chol(obj)))
+    }
+    
 #
 #   Should be necessary any more
 #
     # Check that ids are correctly ordered
-#    if (!ordered.clusters(o$id)) {
+#    if (!ordered.clusters(object$id)) {
 #        stop("clusters in the gee model are not ordered and contiguous. They really should be since otherwise geepack will consider non-contiguous clusters with same id as different. Reorder your dataset or redefine the cluster id variable and run the gee fit again.")
 #    }
 
-    if (any(o$weights != 1)) {
+    if (any(object$weights != 1)) {
         stop("Haven't thought about if there is a problem with weights so will not do any computations")
     }
 
-    clusters <- unique(o$id)
+    clusters <- unique(object$id)
     nclusters <- length(clusters)
     if (is.null(beta)) {
-        beta <- coef(o)
+        beta <- coef(object)
     }
 
     # Offsets handled correctly?
-    y <- o$y
+    y <- object$y
 
-    x <- model.matrix(o)
+    x <- model.matrix(object)
 
     linear.predictors <- x%*%beta
-    if (!is.null(o$offset))
-        linear.predictors <- linear.predictors + o$offset
-    mui <- o$family$linkinv(linear.predictors)
+    if (!is.null(object$offset))
+        linear.predictors <- linear.predictors + object$offset
+    mui <- object$family$linkinv(linear.predictors)
 
     invert <- if ("MASS" %in% loadedNamespaces()) {
 #        MASS::ginv
@@ -44,24 +52,24 @@ scorefct <- function(o, beta=NULL, testidx=NULL, sas=FALSE) {
 
     myres <- lapply(clusters, function(cluster) {
         # Individiuals in cluster
-        idx <- (o$id == cluster)
+        idx <- (object$id == cluster)
 
         # Cluster size
         csize <- sum(idx)
 
         # Di is r*k
-#        Di <- t(x[idx,,drop=FALSE]) %*% MESS:::qdiag(o$family$mu.eta(linear.predictors[idx]), nrow=csize)
-        Di <- crossprod(x[idx,,drop=FALSE], diag(o$family$mu.eta(linear.predictors[idx]), nrow=csize))
-        A  <- diag(sqrt(o$family$variance(mui[idx])), nrow=csize)
+#        Di <- t(x[idx,,drop=FALSE]) %*% MESS:::qdiag(object$family$mu.eta(linear.predictors[idx]), nrow=csize)
+        Di <- crossprod(x[idx,,drop=FALSE], diag(object$family$mu.eta(linear.predictors[idx]), nrow=csize))
+        A  <- diag(sqrt(object$family$variance(mui[idx])), nrow=csize)
         Rmat <- diag(csize)
-        Ralpha <- switch(o$corstr,
+        Ralpha <- switch(object$corstr,
                          independence = Rmat,
-                         exchangeable = matrix(rep(o$geese$alpha, csize^2), csize),
-                         ar1 = o$geese$alpha^abs(row(Rmat) - col(Rmat)))
-        if (o$corstr=="exchangeable")
+                         exchangeable = matrix(rep(object$geese$alpha, csize^2), csize),
+                         ar1          = object$geese$alpha^abs(row(Rmat) - col(Rmat)))
+        if (object$corstr=="exchangeable")
             diag(Ralpha) <- 1
 
-        V <- outer(MESS::qdiag(A), MESS::qdiag(A))*Ralpha*o$geese$gamma  # Ok
+        V <- outer(MESS::qdiag(A), MESS::qdiag(A)) * Ralpha * object$geese$gamma  # Ok
 
         # V inverse
         Vinv <- invert(V)
@@ -94,6 +102,3 @@ scorefct <- function(o, beta=NULL, testidx=NULL, sas=FALSE) {
 
 
 
-sinv <- function(obj) {
-    return(chol2inv(chol(obj)))
-}

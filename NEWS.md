@@ -1,3 +1,9 @@
+# geeasy 0.1.1
+
+* 2022-01-05
+
+* Fixed minor issues before package can go on CRAN
+
 # geeasy 0.1.0
 
 * 2022-01-03

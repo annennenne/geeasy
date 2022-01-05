@@ -15,20 +15,22 @@
 \arguments{
 \item{object}{a fitted object of class geese.}
 
-\item{scope}{a formula giving the terms to be considered for adding or dropping.}
+\item{scope}{a formula giving the terms to be considered for adding
+or dropping.}
 
 \item{test}{the type of test to include.}
 
-\item{method}{Indicates which method is used for computing the standard
-error. \code{robust} is the default and corresponds to the modified sandwich
-estimator. \code{naive} is the classical naive variance estimate.
-\code{sandwich} is an alias for \code{robust}.}
+\item{method}{Indicates which method is used for computing the
+standard error. \code{robust} is the default and corresponds to
+the modified sandwich estimator. \code{naive} is the classical
+naive variance estimate.  \code{sandwich} is an alias for
+\code{robust}.}
 
 \item{\dots}{other arguments. Not currently used}
 }
 \value{
-An object of class \code{anova} summarizing the differences in fit
-between the models.
+An object of class \code{anova} summarizing the differences in
+fit between the models.
 }
 \description{
 Compute all the single terms in the scope argument that can dropped from the

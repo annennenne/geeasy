@@ -12,9 +12,12 @@
 #'    useful when the number of observations is small, as subtracting p may yield 
 #'    correlations greater than 1.
 #'    
-#' @param std.err Character string specifying which standard error estimation method
-#' should be used. Supported options are `san.se` (sandwich SE) and `naive`. 
-#'    
+#' @param std.err Character string specifying which standard error
+#'     estimation method should be used. Supported options are
+#'     `san.se` (sandwich SE) and `naive`.
+#'
+#' @return A list of values used for controlling model fitting.
+#' 
 #' @export
 geelm.control <- function(#init.alpha = NULL, 
                          init.beta = NULL, init.phi = 1,

@@ -1,8 +1,17 @@
 ### Get the AR-1 inverse matrix
-get_alpha_inv_ar <- function(alpha.new, a1,a2,a3,a4, row.vec, col.vec){
-  corr.vec <- c(alpha.new*a1/(1-alpha.new^2) , ( (1+alpha.new^2)*a2 + a3)/(1-alpha.new^2) + a4, alpha.new*a1/(1-alpha.new^2))	
-  return(as(sparseMatrix(i= row.vec, j=col.vec, x=corr.vec), "symmetricMatrix"))
-}
+get_alpha_inv_ar <-
+  function(alpha.new, a1, a2, a3, a4, row.vec, col.vec) {
+    corr.vec <-
+      c(
+        alpha.new * a1 / (1 - alpha.new ^ 2) ,
+        ((1 + alpha.new ^ 2) * a2 + a3) / (1 - alpha.new ^ 2) + a4,
+        alpha.new * a1 / (1 - alpha.new ^ 2)
+      )
+    return(as(
+      sparseMatrix(i = row.vec, j = col.vec, x = corr.vec),
+      "symmetricMatrix"
+    ))
+  }
 
 
 ### Get the necessary structures for the inverse matrix of AR-1
@@ -33,17 +42,23 @@ build_alpha_inv_ar <- function(len){
   a1 <- a1[1:(nn-1)]
   subdiag.col <- 1:(nn-1)
   subdiag.row <- 2:nn
-  
+
   row.vec <- c(subdiag.row, (1:nn), subdiag.col)
   col.vec <- c(subdiag.col, (1:nn), subdiag.row)
   return(list(row.vec = row.vec, col.vec= col.vec, a1 = a1, a2=a2, a3=a3, a4=a4))
 }
 
 ### Returns the full inverse matrix of the correlation for EXCHANGEABLE structure
-get_alpha_inv_ex <- function(alpha.new, diag.vec, BlockDiag){
-  return(as(BlockDiag %*% Diagonal(x = (-alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))))
-            + Diagonal( x = ((1+(diag.vec-2)*alpha.new)/((1-alpha.new)*(1+(diag.vec-1)*alpha.new))
-                             + alpha.new/((1-alpha.new)*(1+(diag.vec-1)*alpha.new)))), "symmetricMatrix"))
+get_alpha_inv_ex <- function(alpha.new, diag.vec, BlockDiag) {
+  return(as(
+    BlockDiag %*% Diagonal(x = (-alpha.new / ((1 - alpha.new) * (1 + (diag.vec - 1) * alpha.new)
+    )))
+    + Diagonal(x = ((1 + (diag.vec - 2) * alpha.new) / ((1 - alpha.new) *
+                                                          (1 + (diag.vec - 1) * alpha.new))
+                    + alpha.new / ((1 - alpha.new) * (1 + (diag.vec - 1) * alpha.new))
+    )),
+    "symmetricMatrix"
+  ))
 }
 
 ### Get the inverse of M-DEPENDENT correlation matrix.

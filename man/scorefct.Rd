@@ -4,21 +4,25 @@
 \alias{scorefct}
 \title{Internal functions for the MESS package}
 \usage{
-scorefct(o, beta = NULL, testidx = NULL, sas = FALSE)
+scorefct(object, beta = NULL, testidx = NULL, sas = FALSE)
 }
 \arguments{
-\item{o}{input geepack object from a geeglm fit.}
+\item{object}{input geepack object from a geeglm fit.}
 
-\item{beta}{The estimated parameters. If set to \code{NULL} then the parameter estimates are extracted from the model fit object o.}
+\item{beta}{The estimated parameters. If set to \code{NULL} then
+the parameter estimates are extracted from the model fit object
+object.}
 
-\item{testidx}{Indices of the beta parameters that should be tested equal to zero}
+\item{testidx}{Indices of the beta parameters that should be tested
+equal to zero}
 
-\item{sas}{Logical. Should the SAS version of the score test be computed. Defaults to \code{FALSE}.}
+\item{sas}{Logical. Should the SAS version of the score test be
+computed. Defaults to \code{FALSE}.}
 }
 \description{
 Internal functions for the MESS package
 }
 \author{
-Claus Ekstrom \email{claus@rprimer.dk}
+Claus Ekstrom \email{claus@ekstroem.dk}
 }
 \keyword{manip}

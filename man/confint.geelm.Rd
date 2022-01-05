@@ -12,18 +12,23 @@
 \arguments{
 \item{object}{a fitted model object.}
 
-\item{parm}{a specification of which parameters are to be given
-    confidence intervals, either a vector of numbers or a vector of
-    names.  If missing, all parameters are considered.}
+\item{parm}{specification of which parameters are to be given
+confidence intervals, either a vector of numbers or a vector
+of names.  If missing, all parameters are considered.}
 
 \item{level}{the confidence level required.}
 
-\item{std.err}{Which standard error estimation method that should be used for
-computing the confidence intervals. Only \code{san.se} is supported for geelm objects but
-\code{jack}, \code{j1s} or \code{fij} may be used for geeglm objects (if they have been estimated
-when fitting the model).}
+\item{std.err}{Which standard error estimation method that should
+be used for computing the confidence intervals. Only \code{san.se}
+is supported for geelm objects but \code{jack}, \code{j1s} or \code{fij} may
+be used for geeglm objects (if they have been estimated when
+fitting the model).}
 
 \item{...}{additional argument(s) for methods.}
+}
+\value{
+A matrix (or vector) with columns giving lower and upper
+confidence limits for each parameter.
 }
 \description{
 Compute Wald confidence intervals for mean structure parameters of geelm object.

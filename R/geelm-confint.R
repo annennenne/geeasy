@@ -2,12 +2,24 @@
 #' 
 #' Compute Wald confidence intervals for mean structure parameters of geelm object.
 #' 
-#' @inheritParams stats::confint
+#' @param object a fitted model object.
+#'
+#' @param parm  specification of which parameters are to be given
+#'           confidence intervals, either a vector of numbers or a vector
+#'           of names.  If missing, all parameters are considered.
+#'
+#' @param level the confidence level required.
+#'
+#' @param std.err Which standard error estimation method that should
+#'     be used for computing the confidence intervals. Only `san.se`
+#'     is supported for geelm objects but `jack`, `j1s` or `fij` may
+#'     be used for geeglm objects (if they have been estimated when
+#'     fitting the model).
 #' 
-#' @param std.err Which standard error estimation method that should be used for 
-#' computing the confidence intervals. Only `san.se` is supported for geelm objects but
-#' `jack`, `j1s` or `fij` may be used for geeglm objects (if they have been estimated
-#' when fitting the model). 
+#' @param ... additional argument(s) for methods.
+#' 
+#' @return A matrix (or vector) with columns giving lower and upper
+#'     confidence limits for each parameter.
 #' 
 #' @export
 confint.geelm <- function(object, parm = NULL, level = 0.95, std.err = "san.se", ...) {

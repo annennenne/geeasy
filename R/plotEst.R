@@ -32,6 +32,8 @@
 #' @param colors Color scale to use if several models are plotted. Defaults to 
 #' a color blind friendly scale. If there are more models than there are colors,
 #' the color values are repeated. 
+#'
+#' @return No return values; called for side effects.
 #' 
 #' @author Anne Helby Petersen
 #' 
@@ -134,9 +136,9 @@ plotEst <- function(..., intercept = TRUE, par = NULL, colors = NULL) {
 
   pF$par <- factor(pF$par)
   
-  #Handle colors
-  # Default: Color blind friendly palette
-  # Repeat colors if there are more models than there are colors
+  ## Handle colors
+  ## Default: Color blind friendly palette
+  ## Repeat colors if there are more models than there are colors
   if (is.null(colors)) {
     colors <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
             "#F0E442", "#0072B2", "#D55E00", "#CC79A7")

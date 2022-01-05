@@ -21,6 +21,9 @@ Default is \code{NULL} which means that all parameter estimates are plotted.}
 a color blind friendly scale. If there are more models than there are colors,
 the color values are repeated.}
 }
+\value{
+No return values; called for side effects.
+}
 \description{
 Parameter estimates are plotted along with error bars
 indicating 95 pct confidence intervals.
