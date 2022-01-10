@@ -118,7 +118,7 @@ m_outout_geem <- geelm(outcome ~ treat + sex + age + baseline,
 ```
 This does not change the computations performed, only the output object. This means that the output will generally *not* be identical to that of `geeM::geem()`.
 
-** Changing the estimation engine:** `geelm()` allows for choosing to use `geepack` as its computational engine as follows:
+**Changing the estimation engine:** `geelm()` allows for choosing to use `geepack` as its computational engine as follows:
 
 ```{r}
 m_engine_geepack <- geelm(outcome ~ treat + sex + age + baseline, 
