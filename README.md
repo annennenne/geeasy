@@ -5,6 +5,12 @@ clustered observations using generalized estimating equations.
 
 ## Installation
 
+geeasy is available on CRAN and can be installed as follows:
+
+```{r}
+install.packages("geeasy")
+```
+
 To install the development version of `geeasy` run the following
 commands from within R (requires that the `devtools` package is already
 installed)
