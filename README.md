@@ -1,4 +1,6 @@
 # geeasy
+[![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/geeasy)](https://CRAN.R-project.org/package=geeasy)
+![Download counter](http://cranlogs.r-pkg.org/badges/grand-total/geeasy)
 
 R package with tools for fitting generalized linear models with
 clustered observations using generalized estimating equations.
