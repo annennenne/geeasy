@@ -1,7 +1,7 @@
 Package: geeasy
 Type: Package
 Title: Solve Generalized Estimating Equations for Clustered Data
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(person("Anne Helby", "Petersen", role = c("aut"), email = "ahpe@sund.ku.dk"),
 	   person("Lee", "McDaniel", role = "aut", comment = "Author of geeM"),
       	   person("Claus", "Ekstrøm", role = "ctb", comment = "Wrote code for drop1 methods"),

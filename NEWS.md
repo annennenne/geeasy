@@ -1,3 +1,10 @@
+# geeasy 0.1.2. 
+
+* Date: 2024-04-29
+
+* Computation of jackknife standard errors has been illustrated (but
+  not fully implemented).
+
 # geeasy 0.1.1
 
 * 2022-01-05

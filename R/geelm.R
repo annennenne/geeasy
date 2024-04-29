@@ -166,7 +166,7 @@
 #' @seealso \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
 #' 
 #' @keywords models robust
-#'
+#' 
 #' @importFrom stats complete.cases gaussian model.frame model.offset model.response na.omit na.pass 
 #' @examples
 #' 
@@ -178,7 +178,43 @@
 #' m <- geelm(outcome ~ treat + sex + age + baseline, 
 #'            data = respiratory, id = useid,
 #'                       family = "binomial", corstr = "exchangeable")
-#'                       
+#' 
+#' \dontrun{
+#' get_jack_se <- function(object, dat){
+#'     parm <- sapply(1:nrow(dat),
+#'                    function(i){
+#'                        dat.i <- dat[-i,]
+#'                        coef(update(object, data=dat.i))
+#'                    })
+#'     parm <- t(parm)
+#'     parm.mean <- apply(parm, 2, mean)
+#'     
+#'     parm.cent <- sapply(1:nrow(parm),
+#'                         function(i){
+#'                             parm[i, ] - parm.mean
+#'                         })
+#'     parm.cent <- t(parm.cent) 
+#'     
+#'     jack.var <- ((nrow(dat)-1) / nrow(dat)) * t(parm.cent) %*% parm.cent
+#'     jack.se <- sqrt(diag(jack.var))
+#'     jack.se
+#' }
+#' 
+#' 
+#' # load data
+#' data("respiratory")
+#' respiratory$useid <- interaction(respiratory$center, respiratory$id)
+#' 
+#' # fit model
+#' obj <- geelm(outcome ~ treat + sex + age + baseline, 
+#'            data = respiratory, id = useid,
+#'                       family = "binomial", corstr = "exchangeable")
+#' 
+#' dat <- respiratory
+#' get_jack_se(obj, dat)
+#' summary(obj) |> coef()
+#' }
+#' 
 #' @importFrom geepack geeglm geese.control
 #' 
 #' @export
