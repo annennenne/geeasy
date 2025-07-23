@@ -128,33 +128,38 @@
 #' 
 #' \code{$data}: The original dataset that was used for producing this geeglm object.
 #' 
-#' \code{$offset}: Offset used for fitting the model, ordered as the original inputted data
-#' with NAs omitted.
+#' \code{$offset}: Offset used for fitting the model, ordered as the
+#' original inputted data with NAs omitted.
 #' 
-#' \code{$control}: Value of control parameters used for fitting the model. 
+#' \code{$control}: Value of control parameters used for fitting the
+#' model.
 #' 
 #' \code{$method}: Internal function used for fitting the model.
 #' 
 #' \code{$contrasts}: Contrasts used in the model matrix.
 #' 
-#' \code{$xlevels}: Levels of factor variables used in the model formula (if any).
+#' \code{$xlevels}: Levels of factor variables used in the model
+#' formula (if any).
 #' 
-#' \code{$geese}: An object containing further information about the variance estimation, 
-#' including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated 
-#' coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion 
-#' parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See 
-#' \code{\link{geese}} for more information. 
+#' \code{$geese}: An object containing further information about the
+#' variance estimation, including a variance matrix for the
+#' beta-coefficients (\code{$vbeta}), the estimated coefficients for
+#' the working correlation matrix (\code{$alpha}), the estimated
+#' dispersion parameter (\code{$gamma}), and the individual cluster
+#' sizes (\code{$clusz}). See \code{\link[geepack]{geese}} for more
+#' information.
 #' 
-#' \code{$modelInfo}: Information about the link functions used for fitting the mean, variance 
-#' and scale structures of the model. 
+#' \code{$modelInfo}: Information about the link functions used for
+#' fitting the mean, variance and scale structures of the model.
 #' 
-#' \code{$id}: IDs used for identifying the clusters, ordered as the original inputted data 
-#' with NAs omitted.
+#' \code{$id}: IDs used for identifying the clusters, ordered as the
+#' original inputted data with NAs omitted.
 #' 
-#' \code{$corstr}: Name of the correlation structured imposed on the model. If the 
-#' correlation structure requires further information, it is stored in a suitably named
-#' attribute. For example, for m-dependent correlation structures, the m scalar is available
-#' in an attribute named \code{Mv}. 
+#' \code{$corstr}: Name of the correlation structured imposed on the
+#' model. If the correlation structure requires further information,
+#' it is stored in a suitably named attribute. For example, for
+#' m-dependent correlation structures, the m scalar is available in an
+#' attribute named \code{Mv}.
 #' 
 #' \code{$cor.link}: Link function used for the correlation structure.
 #' 

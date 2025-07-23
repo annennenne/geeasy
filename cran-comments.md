@@ -1,3 +1,2 @@
-New submission:
+Fixed issue from cran: https://cran.r-project.org/web/checks/check_results_geeasy.html
 
-This is the first submission of our new package "geeasy"
