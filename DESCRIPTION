@@ -6,7 +6,7 @@ Authors@R: c(person("Anne Helby", "Petersen", role = c("aut"), email = "ahpe@sun
 	   person("Lee", "McDaniel", role = "aut", comment = "Author of geeM"),
       	   person("Claus", "Ekstrøm", role = "ctb", comment = "Wrote code for drop1 methods"),
 	   person("Søren", "Højsgaard", role = c("aut", "cre"), email="sorenh@math.aau.dk", comment = "Author of geepack"))
-Date: 2022-01-03
+Date: 2024-04-29
 Maintainer: Søren Højsgaard <sorenh@math.aau.dk>
 Depends: geepack, stats
 Imports: ggplot2, geeM, lme4, methods, Matrix, MESS
@@ -24,8 +24,7 @@ Description: Estimation of generalized linear models with
     with and inspecting results from the 'geepack' package, e.g. a
     'confint' method for 'geeglm' objects from 'geepack'.
 License: GPL-3
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.1
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Language: en-US
-

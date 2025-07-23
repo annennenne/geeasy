@@ -24,17 +24,7 @@ geelm(
 )
 }
 \arguments{
-\item{x}{For \code{glm}:
-    logical values indicating whether the response vector and model
-    matrix used in the fitting process should be returned as components
-    of the returned value.
-
-    For \code{glm.fit}: \code{x} is a design matrix of dimension
-    \code{n * p}, and \code{y} is a vector of observations of length
-    \code{n}.
-  }
-
-\item{y}{For \code{glm}:
+\item{x, y}{For \code{glm}:
     logical values indicating whether the response vector and model
     matrix used in the fitting process should be returned as components
     of the returned value.
@@ -219,9 +209,9 @@ and so are decided by the choice of the link function.
 }
 \section{Functions}{
 \itemize{
-\item \code{geelm.fit}: 
-}}
+\item \code{geelm.fit()}: 
 
+}}
 \examples{
 
 # load data
@@ -232,7 +222,43 @@ respiratory$useid <- interaction(respiratory$center, respiratory$id)
 m <- geelm(outcome ~ treat + sex + age + baseline, 
            data = respiratory, id = useid,
                       family = "binomial", corstr = "exchangeable")
-                      
+
+\dontrun{
+get_jack_se <- function(object, dat){
+    parm <- sapply(1:nrow(dat),
+                   function(i){
+                       dat.i <- dat[-i,]
+                       coef(update(object, data=dat.i))
+                   })
+    parm <- t(parm)
+    parm.mean <- apply(parm, 2, mean)
+    
+    parm.cent <- sapply(1:nrow(parm),
+                        function(i){
+                            parm[i, ] - parm.mean
+                        })
+    parm.cent <- t(parm.cent) 
+    
+    jack.var <- ((nrow(dat)-1) / nrow(dat)) * t(parm.cent) \%*\% parm.cent
+    jack.se <- sqrt(diag(jack.var))
+    jack.se
+}
+
+
+# load data
+data("respiratory")
+respiratory$useid <- interaction(respiratory$center, respiratory$id)
+
+# fit model
+obj <- geelm(outcome ~ treat + sex + age + baseline, 
+           data = respiratory, id = useid,
+                      family = "binomial", corstr = "exchangeable")
+
+dat <- respiratory
+get_jack_se(obj, dat)
+summary(obj) |> coef()
+}
+
 }
 \seealso{
 \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}

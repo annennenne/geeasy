@@ -76,6 +76,6 @@ in the data.
 }
 \section{Functions}{
 \itemize{
-\item \code{getME}: 
-}}
+\item \code{getME()}: 
 
+}}

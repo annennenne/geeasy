@@ -35,6 +35,6 @@ Compute Wald confidence intervals for mean structure parameters of geelm object.
 }
 \section{Functions}{
 \itemize{
-\item \code{confint.geeglm}: 
-}}
+\item \code{confint(geeglm)}: 
 
+}}
