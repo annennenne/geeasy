@@ -24,17 +24,7 @@ geelm(
 )
 }
 \arguments{
-\item{x}{For \code{glm}:
-    logical values indicating whether the response vector and model
-    matrix used in the fitting process should be returned as components
-    of the returned value.
-
-    For \code{glm.fit}: \code{x} is a design matrix of dimension
-    \code{n * p}, and \code{y} is a vector of observations of length
-    \code{n}.
-  }
-
-\item{y}{For \code{glm}:
+\item{x, y}{For \code{glm}:
     logical values indicating whether the response vector and model
     matrix used in the fitting process should be returned as components
     of the returned value.
@@ -146,33 +136,38 @@ by user or defaulted to 1 for all observations).
 
 \code{$data}: The original dataset that was used for producing this geeglm object.
 
-\code{$offset}: Offset used for fitting the model, ordered as the original inputted data
-with NAs omitted.
+\code{$offset}: Offset used for fitting the model, ordered as the
+original inputted data with NAs omitted.
 
-\code{$control}: Value of control parameters used for fitting the model.
+\code{$control}: Value of control parameters used for fitting the
+model.
 
 \code{$method}: Internal function used for fitting the model.
 
 \code{$contrasts}: Contrasts used in the model matrix.
 
-\code{$xlevels}: Levels of factor variables used in the model formula (if any).
+\code{$xlevels}: Levels of factor variables used in the model
+formula (if any).
 
-\code{$geese}: An object containing further information about the variance estimation,
-including a variance matrix for the beta-coefficients (\code{$vbeta}), the estimated
-coefficients for the working correlation matrix (\code{$alpha}), the estimated dispersion
-parameter (\code{$gamma}), and the individual cluster sizes (\code{$clusz}). See
-\code{\link{geese}} for more information.
+\code{$geese}: An object containing further information about the
+variance estimation, including a variance matrix for the
+beta-coefficients (\code{$vbeta}), the estimated coefficients for
+the working correlation matrix (\code{$alpha}), the estimated
+dispersion parameter (\code{$gamma}), and the individual cluster
+sizes (\code{$clusz}). See \code{\link[geepack]{geese}} for more
+information.
 
-\code{$modelInfo}: Information about the link functions used for fitting the mean, variance
-and scale structures of the model.
+\code{$modelInfo}: Information about the link functions used for
+fitting the mean, variance and scale structures of the model.
 
-\code{$id}: IDs used for identifying the clusters, ordered as the original inputted data
-with NAs omitted.
+\code{$id}: IDs used for identifying the clusters, ordered as the
+original inputted data with NAs omitted.
 
-\code{$corstr}: Name of the correlation structured imposed on the model. If the
-correlation structure requires further information, it is stored in a suitably named
-attribute. For example, for m-dependent correlation structures, the m scalar is available
-in an attribute named \code{Mv}.
+\code{$corstr}: Name of the correlation structured imposed on the
+model. If the correlation structure requires further information,
+it is stored in a suitably named attribute. For example, for
+m-dependent correlation structures, the m scalar is available in an
+attribute named \code{Mv}.
 
 \code{$cor.link}: Link function used for the correlation structure.
 
@@ -219,9 +214,9 @@ and so are decided by the choice of the link function.
 }
 \section{Functions}{
 \itemize{
-\item \code{geelm.fit}: 
-}}
+\item \code{geelm.fit()}: 
 
+}}
 \examples{
 
 # load data
@@ -232,7 +227,43 @@ respiratory$useid <- interaction(respiratory$center, respiratory$id)
 m <- geelm(outcome ~ treat + sex + age + baseline, 
            data = respiratory, id = useid,
                       family = "binomial", corstr = "exchangeable")
-                      
+
+\dontrun{
+get_jack_se <- function(object, dat){
+    parm <- sapply(1:nrow(dat),
+                   function(i){
+                       dat.i <- dat[-i,]
+                       coef(update(object, data=dat.i))
+                   })
+    parm <- t(parm)
+    parm.mean <- apply(parm, 2, mean)
+    
+    parm.cent <- sapply(1:nrow(parm),
+                        function(i){
+                            parm[i, ] - parm.mean
+                        })
+    parm.cent <- t(parm.cent) 
+    
+    jack.var <- ((nrow(dat)-1) / nrow(dat)) * t(parm.cent) \%*\% parm.cent
+    jack.se <- sqrt(diag(jack.var))
+    jack.se
+}
+
+
+# load data
+data("respiratory")
+respiratory$useid <- interaction(respiratory$center, respiratory$id)
+
+# fit model
+obj <- geelm(outcome ~ treat + sex + age + baseline, 
+           data = respiratory, id = useid,
+                      family = "binomial", corstr = "exchangeable")
+
+dat <- respiratory
+get_jack_se(obj, dat)
+summary(obj) |> coef()
+}
+
 }
 \seealso{
 \code{\link{glm}}, \code{\link{formula}}, \code{\link{family}}
