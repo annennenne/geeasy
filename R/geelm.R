@@ -456,16 +456,16 @@ geelm <- function(formula, id = NULL, waves = NULL, data = parent.frame(),
   # Create object resembling original geeM::geem() output
   if (output %in% c("geem", "geeM")) {
 
-        #add slots not already available in geelm.fit output
-    results$coefnames <- colnames(X)
-    results$call <- thiscall
-    results$X <- X
-    results$dropped <- dropid
-    results$terms <- terms(formula)
-    results$y <- Y
-    results$formula <- formula
-    results$var <- results$vbeta
-    
+      ##add slots not already available in geelm.fit output
+      results$coefnames <- colnames(X)
+      results$call <- thiscall
+      results$X <- X
+      results$dropped <- dropid
+      results$terms <- terms(formula)
+      results$y <- Y
+      results$formula <- formula
+      results$var <- results$vbeta
+      
     # new dat and X objects are standard in geem - these will be ordered as 
     # the original input data but may differ in observations if NAs were dropped
     # along the way!
@@ -687,21 +687,21 @@ get_sandwich <- function(YY, XX, eta, id, R.alpha.inv, phi, InvLinkDeriv,
                         InvLink, VarFun, hessMat, StdErr, dInvLinkdEta,
                         BlockDiag, W, included){
   
-  diag(dInvLinkdEta) <- InvLinkDeriv(eta)
-  mu <- InvLink(eta)
-  diag(StdErr) <- sqrt(1/VarFun(mu))
-  scoreDiag <- Diagonal(x= YY - mu)
-  BlockDiag <- scoreDiag %*% BlockDiag %*% scoreDiag
+    diag(dInvLinkdEta) <- InvLinkDeriv(eta)
+    mu <- InvLink(eta)
+    diag(StdErr) <- sqrt(1 / VarFun(mu))
+    scoreDiag <- Diagonal(x = YY - mu)
+    BlockDiag <- scoreDiag %*% BlockDiag %*% scoreDiag
   
-  numsand <- as.matrix(crossprod( StdErr %*% dInvLinkdEta %*% XX,  
-                                  R.alpha.inv %*% W %*% StdErr %*% 
-                                    BlockDiag %*% StdErr %*% W %*% 
-                                    R.alpha.inv %*%  StdErr %*% 
-                                    dInvLinkdEta %*% XX))
+    numsand <- as.matrix(crossprod( StdErr %*% dInvLinkdEta %*% XX,  
+                                   R.alpha.inv %*% W %*% StdErr %*% 
+                                   BlockDiag %*% StdErr %*% W %*% 
+                                   R.alpha.inv %*%  StdErr %*% 
+                                   dInvLinkdEta %*% XX))
   
-  sandvar <- t(solve(hessMat, numsand))
-  sandvar <- t(solve(t(hessMat), sandvar))
-  
-  return(list(sandvar = sandvar, numsand = numsand))
+    sandvar <- t(solve(hessMat, numsand))
+    sandvar <- t(solve(t(hessMat), sandvar))
+    
+    return(list(sandvar = sandvar, numsand = numsand))
 }
 
